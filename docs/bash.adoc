@@ -1,0 +1,476 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+
+include::header.adoc[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+endif::[]
+
+== Bash
+
+=== Profile
+
+* How to turn off the beep only in bash
+
+** So you can put into your ~/.inputrc file following line:
++
+[source,plaintext]
+.~/.inputrc
+----
+set bell-style none
+----
++
+Next, run bind -f ~/.inputrc once to load it.
+
+* If you don't want to create and maintain a separate ~/.inputrc file, you can also just add this line to ~/.bashrc:
++
+[source,shell]
+.~/.inputrc
+----
+bind 'set bell-style none'
+----
++
+Then source ~/.bashrc to reload it.
+
+.References
+* https://unix.stackexchange.com/questions/73672/how-to-turn-off-the-beep-only-in-bash-tab-complete[terminal - How to turn off the beep only in bash tab-complete - Unix & Linux Stack Exchange^] +
+  bash disable bell tab - Google 検索
+
+=== Prompts
+
+[cols="1m,1a" options="autowidth"]
+|===
+| \h | host name
+| \u | user name
+| \w | current directory
+| \w | current directory (full)
+| $  | 一般ユーザーの時$,rootの時#を表示
+|===
+
+* directory only(`\W`)
++
+[source,shell]
+----
+PS1='\e[35m\W\e[0m\$ '
+----
+
+* `[HH:MM:SS] dir-name${sp}`
++
+[source,shell]
+----
+PS1='[\D{%H:%M:%S}]\e[37;1m${debian_chroot:+($debian_chroot)} \e[35m\W\e[0m\$ '
+----
+
+* Dark terminal
++
+[source,shell]
+.~/.bashrc
+----
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;36m\]\w\[\033[00m\]\$ '
+eval $(dircolors | sed -e 's/di=01;34/di=00;44/')
+----
+
+* misc
++
+[source,shell]
+----
+PS1='\e[37;1m\u@\e[35m\w\e[0m\$ '
+----
+
+.References
+* https://qiita.com/zaburo/items/9194cd9eb841dea897a0[Bashプロンプトの変更 - Qiita^]
+
+=== Reload shell command
+
+You can enter the long form command:
+
+[source,console]
+----
+$ source ~/.bashrc
+----
+
+or you can use the shorter version of the command:
+
+[source,console]
+----
+$ . ~/.bashrc
+----
+
+Or you could use:
+
+[source,console]
+.Reload the shell itself
+----
+$ exec $SHELL -l
+----
+
+=== Flow control statements
+
+* Using counter
++
+[source,shell]
+----
+#!/bin/bash
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    i=$[$i + 1]
+done
+----
++
+[source,shell]
+----
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    i=$((i + 1))
+done
+----
++
+[source,shell]
+----
+#!/bin/bash
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    i=$((++i))
+done
+----
++
+[source,shell]
+----
+#!/bin/bash
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    ((++i))
+done
+----
++
+[source,shell]
+----
+#!/bin/bash
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    ((i++))
+done
+----
++
+[source,shell]
+----
+#!/bin/bash
+i=1
+while [ $i -le 5 ]; do
+    echo $i
+    ((i += 1))
+done
+----
++
+[source,shell]
+----
+i=0; while [[ i -lt 5 ]]; do ((i++)); echo $i; done
+----
++
+[source,shell]
+----
+echo {1..5} | tr ' ' '\n'
+----
++
+[source,shell]
+----
+#!/bin/bash
+for i in {1..5}; do
+    echo $i
+done
+----
+
+** Using `seq`
++
+[source,shell]
+----
+seq 1 5
+----
++
+[source,console]
+----
+$ seq 1 5
+1
+2
+3
+4
+5
+----
+
+* Loop using list
++
+[source,shell]
+----
+#!/bin/bash
+for s in "foo" "bar" "baz"; do
+    echo $s
+done
+----
+
+* Using break
++
+[source,shell]
+----
+#!/bin/bash
+i=0
+sum=0
+while read LINE;do
+    [[ i -gt 2 ]] && break
+    sum=$((sum + LINE))
+    ((++i))
+done <<EOF
+1
+2
+3
+4
+5
+EOF
+
+echo "SUM=$sum"
+----
++
+[source,plaintext]
+----
+SUM=6
+----
+
+* Using continue
++
+[source,shell]
+.loop_continue.sh
+----
+#!/bin/bash
+i=0
+sum=0
+while read LINE;do
+    ((++i))
+    [[ i -le 2 ]] && continue
+    echo $LINE
+    sum=$((sum + LINE))
+done <<EOF
+HEADER
+======
+1
+2
+3
+EOF
+
+echo "SUM=$sum"
+----
++
+[source,console]
+----
+1
+2
+3
+SUM=6
+----
+
+** NG
++
+[source,shell]
+.loop_continue.sh
+----
+#!/bin/bash
+trap 'rm -f a.txt' 0
+
+cat > a.txt <<EOF
+HEADER
+======
+1
+2
+3
+EOF
+
+i=0
+sum=0
+cat a.txt | while read LINE;do
+    ((++i))
+    [[ i -le 2 ]] && continue
+    echo $LINE
+    sum=$((sum + $LINE))
+done
+
+echo "SUM=$sum"
+----
++
+[source,plaintext]
+----
+1
+2
+3
+SUM=0
+----
+
+* loop 90 seconds
++
+[source,shell]
+----
+#!/bin/sh
+touch a.txt
+ls -l --time-style=+'%Y/%m/%d %H:%M:%S' a.txt
+trap "rm -f a.txt" 0
+
+t0=$(date +%s)
+
+date '+%Y-%m-%d %H:%M:%S'
+while [ $(($(date +%s) -${t0})) -lt 90 ]; do
+    COUNT=$(find . -name a.txt -mmin +1 -type f | wc -l)
+    test $COUNT -gt 0 && break
+    # echo "time: " $(($(date +%s) -${t0}))
+    sleep 0.5
+done
+t1=$(date +%s)
+echo "time: " $(($(date +%s) -${t0}))
+date '+%Y-%m-%d %H:%M:%S'
+ls -l --time-style=+'%Y/%m/%d %H:%M:%S' a.txt
+----
+
+=== Here document
+
+* Use of Simple heredoc Text
+
+** Using cat
++
+[source,shell]
+----
+cat <<EOF
+Apple
+Banana
+Cherry
+EOF
+----
+
+** Using grep
++
+[source,shell]
+----
+grep Banana <<EOF
+Apple
+Banana
+Cherry
+EOF
+----
+
+* Piping a heredoc
++
+[source,shell]
+.bash piping_heredoc_1.sh
+----
+#!/bin/sh
+. .env
+
+psql -d fruits <<EOF | grep Banana
+SELECT id, name ,price FROM fruits_menu;
+EOF
+----
++
+[source,shell]
+.bash piping_heredoc_2.sh
+----
+#!/bin/bash
+. .env
+
+psql -d fruits <<EOF |
+SELECT id, name ,price FROM fruits_menu;
+EOF
+grep Banana
+----
++
+[source,console]
+.Results
+----
+$ psql -d fruits -c "SELECT id, name ,price FROM fruits_menu;"
+ id |  name  | price
+----+--------+-------
+  1 | Apple  |   100
+  2 | Banana |   120
+  3 | Orange |   110
+(3 rows)
+
+$ bash piping_heredoc_1.sh
+  2 | Banana |   120
+$ bash piping_heredoc_2.sh
+  2 | Banana |   120
+----
+
+=== Using mktemp
+
+[source,shell]
+.mktemp_d_test.sh
+----
+#!/bin/bash
+SCRIPT_PATH_IN=${BASH_SOURCE:-$0}
+SCRIPT_NAME=$(basename ${SCRIPT_PATH_IN} .sh)
+SCRIPT_DIR=$(dirname ${SCRIPT_PATH_IN})
+WORK_DIR=$(mktemp -d -p /tmp ${SCRIPT_NAME}.XXXX)
+trap 'rm -rf -- "${WORK_DIR}"' EXIT
+
+echo "SCRIPT_NAME='${SCRIPT_NAME}',SCRIPT_DIR='${SCRIPT_DIR}'"
+SCRIPT_PATH_ABS=$(realpath ${SCRIPT_PATH_IN})
+echo "SCRIPT_PATH_ABS='${SCRIPT_PATH_ABS}'"
+touch ${WORK_DIR}/a.txt
+ls -ld $(find ${WORK_DIR})
+----
+
+=== Parses the command-line arguments
+
+==== getopts (shell built-in)
+
+[source,shell]
+----
+#!/bin/bash
+X_OPT=0
+F_ARG="nil"
+
+usage() {
+    MESSAGE="$1"
+    test -n "$MESSAGE" && echo "$MESSAGE" 1>&2
+    cat 1>&2 <<EOF
+$0 [-h] [-f FOO] [-x] file1 file2
+EOF
+}
+
+while getopts "f:hx" opt; do
+  case $opt in
+    f) F_ARG="$OPTARG" ;;
+    h) usage; exit 0;;
+    x) X_OPT=1;;
+    \?) usage; exit 1;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+test $# -ne 2 && usage "ERROR: Invalid operand. : ARG-NUM=$#" && exit 1
+echo ARG_NUM=$# X_OPT=$X_OPT F_ARG=$F_ARG $*
+----
+
+[source,console]
+----
+$ ./getopts_ex1.sh a b
+ARG_NUM=2 X_OPT=0 F_ARG=nil a b
+$ ./getopts_ex1.sh -x a b
+ARG_NUM=2 X_OPT=1 F_ARG=nil a b
+$ ./getopts_ex1.sh -f xyz a b
+ARG_NUM=2 X_OPT=0 F_ARG=xyz a b
+$ ./getopts_ex1.sh
+ERROR: Invalid operand. : ARG-NUM=0
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -y a b
+./getopts_ex1.sh: illegal option -- y
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -x a
+ERROR: Invalid operand. : ARG-NUM=1
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -f aaa a b c
+ERROR: Invalid operand. : ARG-NUM=3
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+----

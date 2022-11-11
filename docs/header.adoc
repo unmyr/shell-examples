@@ -1,2 +1,3 @@
 <<index.adoc#,Index>> {vbar}
-<<install_and_setup.adoc#,Install>> +
+<<bash.adoc#,Bash>> {vbar}
+<<terminal_emulators.adoc#,Terminal>> +

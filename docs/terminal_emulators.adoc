@@ -1,0 +1,91 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+
+include::header.adoc[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+endif::[]
+
+== Terminal Emulators
+
+=== ANSI color
+
+[cols="1m,1d,1d,1d" options="autowidth"]
+|===
+| Code | Name     | Black | White
+
+| 30m  | Black   ^|  x   ^|   o
+| 31m  | Red     ^|      ^|
+| 32m  | Green   ^|      ^|
+| 33m  | Yellow  ^|  o   ^|   x 
+| 34m  | Blue    ^|  x   ^|   o 
+| 35m  | Purple  ^|      ^|
+| 37m  | White   ^|      ^|
+
+| 1;30m | Bright Black   ^| ^| 
+| 1;31m | Bright Red     ^| ^|
+| 1;32m | Bright Green   ^| ^|
+| 1;33m | Bright Yellow  ^| ^|
+| 1;34m | Bright Blue    ^| ^|
+| 1;35m | Bright Magenta ^| ^|
+| 1;36m | Bright Cyan    ^| ^|
+| 1;37m | Bright White   ^| ^|
+|===
+
+* Foreground
++
+[source,shell]
+.Bash
+----
+# None
+for i in {30..37}; do printf '\e[%dm%d\e[m ' $i $i; done; echo
+# 1: Bold
+for i in {30..37}; do printf '\e[1;%dm%d\e[m ' $i $i; done; echo
+
+for i in {30..37} {90..97}; do printf '\e[%dm%d\e[m ' $i $i; done; echo
+----
+
+* Background
++
+[source,shell]
+----
+for i in {40..47} {100..107}; do printf '\e[%dm%d\e[m ' $i $i; done; echo
+----
+
+[source,shell]
+.Foreground (Python)
+----
+python -c 'print(" ".join([f"\x1b[{i}m{i}\x1b[m" for i in range(30, 37+1)]))'
+----
+
+[source,python]
+----
+for i in range(0, 16):
+    print(*[
+        "\u001b[48;5;{0}m{0:3d}".format(i * 16 + j) for j in range(0, 16)
+    ], end="\u001b[0m\n")
+----
+
+=== ls colors
+
+Change dark blue color in ls output in linux.
+
+[source,shell]
+----
+eval `dircolors | sed -e 's/di=01;34/di=00;44/'`
+----
+
+image::terminal_emulators-ls-colors.png[] 
+
+=== Grep
+
+[source,shell]
+----
+export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=35:ln=32:bn=32:se=36'
+----
+
+.References
+* https://www.gnu.org/software/grep/manual/grep.html#index-GREP_005fCOLORS-environment-variable[GNU Grep 3.7 > 2.2 Environment Variables^]
