@@ -1,0 +1,20 @@
+{
+    "files.eol": "\n",
+    "cSpell.words": [
+        "ALPN",
+        "certutil",
+        "cksum",
+        "dgst",
+        "drwxrwxr",
+        "findall",
+        "getifaddrs",
+        "gsub",
+        "gunicorn",
+        "hashfile",
+        "httpbin",
+        "inet",
+        "NODELAY",
+        "readlines",
+        "zxvf"
+    ]
+}
