@@ -107,6 +107,88 @@ Or you could use:
 $ exec $SHELL -l
 ----
 
+=== Boolean
+
+* Check true/false is built-in
++
+[source,console]
+----
+$ type true
+true is a shell builtin
+$ type false
+false is a shell builtin
+----
+
+* Logical operator
+
+** `&&` operator
++
+[source,console]
+----
+$ true && echo $?
+0
+$ false && echo $?
+$
+----
+
+** `||` operator
++
+[source,console]
+----
+$ true || echo $?
+$ false || echo $?
+1
+----
+
+* Using if condition
++
+[source,console]
+----
+$ if true; then echo "True"; else echo "False"; fi
+True
+$ if "true"; then echo "True"; else echo "False"; fi
+True
+$ if false; then echo "True"; else echo "False"; fi
+False
+$ if "false"; then echo "True"; else echo "False"; fi
+False
+----
+
+* And/Or
++
+[source,shell]
+----
+echo "# And"
+if false && false; then echo "True"; else echo "False"; fi
+if false && true;  then echo "True"; else echo "False"; fi
+if true  && false; then echo "True"; else echo "False"; fi
+if true  && true;  then echo "True"; else echo "False"; fi
+
+echo "# OR"
+if false || false; then echo "True"; else echo "False"; fi
+if false || true;  then echo "True"; else echo "False"; fi
+if true  || false; then echo "True"; else echo "False"; fi
+if true  || true;  then echo "True"; else echo "False"; fi
+----
++
+[source,plaintext]
+.Results
+----
+# And
+False
+False
+False
+True
+# OR
+False
+True
+True
+True
+----
+
+.References
+* https://stackoverflow.com/questions/19670061/bash-if-false-returns-true-instead-of-false-why[boolean - bash "if [ false \];" returns true instead of false -- why? - Stack Overflow^]
+
 === Flow control statements
 
 * Using counter
