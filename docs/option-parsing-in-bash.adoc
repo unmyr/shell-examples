@@ -1,0 +1,160 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+
+ifndef::env-github[]
+:icons: font
+endif::[]
+
+ifdef::env-github[]
+// Alternative to :icons: font on GitHub.
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+
+include::header.adoc[]
+
+endif::[]
+
+== Option parsing in Bash
+
+=== getopts (shell built-in)
+
+[source,shell]
+----
+#!/bin/bash
+X_OPT=0
+F_ARG="nil"
+
+usage() {
+    MESSAGE="$1"
+    test -n "$MESSAGE" && echo "$MESSAGE" 1>&2
+    cat 1>&2 <<EOF
+$0 [-h] [-f FOO] [-x] file1 file2
+EOF
+}
+
+while getopts "f:hx" opt; do
+  case $opt in
+    f) F_ARG="$OPTARG" ;;
+    h) usage; exit 0;;
+    x) X_OPT=1;;
+    \?) usage; exit 1;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+test $# -ne 2 && usage "ERROR: Invalid operand. : ARG-NUM=$#" && exit 1
+echo ARG_NUM=$# X_OPT=$X_OPT F_ARG=$F_ARG $*
+----
+
+[source,console]
+----
+$ ./getopts_ex1.sh a b
+ARG_NUM=2 X_OPT=0 F_ARG=nil a b
+$ ./getopts_ex1.sh -x a b
+ARG_NUM=2 X_OPT=1 F_ARG=nil a b
+$ ./getopts_ex1.sh -f xyz a b
+ARG_NUM=2 X_OPT=0 F_ARG=xyz a b
+$ ./getopts_ex1.sh
+ERROR: Invalid operand. : ARG-NUM=0
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -y a b
+./getopts_ex1.sh: illegal option -- y
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -x a
+ERROR: Invalid operand. : ARG-NUM=1
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+$ ./getopts_ex1.sh -f aaa a b c
+ERROR: Invalid operand. : ARG-NUM=3
+./getopts_ex1.sh [-h] [-f FOO] [-x] file1 file2
+----
+
+=== getopt (util-linux)
+
+[source,shell]
+----
+#!/bin/bash
+echo "\$@='$@'"
+GETOPT_TEMP=$(getopt -o n:v --long dry-run,namespace: -- "$@")
+VALID_ARGUMENTS=$?
+echo VALID_ARGUMENTS=$VALID_ARGUMENTS
+eval set -- "${GETOPT_TEMP}"
+unset GETOPT_TEMP
+
+usage() {
+    cat 1>&2 <<EOF
+Usage: $0 [-n |--namespace] [--dry-run]
+EOF
+}
+
+DRY_RUN="false"
+NAMESPACE=
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -n|--namespace) NAMESPACE=$2; shift 2;;
+    --dry-run) DRY_RUN="true"; shift;;
+    --) shift; break;;
+    *)
+        echo "ERROR: Unexpected option: OPTION='$1'" 1>&2
+        usage
+        exit 1
+        ;;
+    esac
+done
+
+cat <<EOF
+NAMESPACE="${NAMESPACE}"
+DRY_RUN="${DRY_RUN}"
+ARG1="$1"
+ARG2="$2"
+EOF
+----
+
+[source,console]
+.Results
+----
+$ ./getopt_ex.test.sh
++ ./getopt_ex.sh
+$@=''
+VALID_ARGUMENTS=0
+NAMESPACE=""
+DRY_RUN="false"
+ARG1=""
+ARG2=""
++ ./getopt_ex.sh --namespace n1
+$@='--namespace n1'
+VALID_ARGUMENTS=0
+NAMESPACE="n1"
+DRY_RUN="false"
+ARG1=""
+ARG2=""
++ ./getopt_ex.sh --namespace n1 aaa bbb
+$@='--namespace n1 aaa bbb'
+VALID_ARGUMENTS=0
+NAMESPACE="n1"
+DRY_RUN="false"
+ARG1="aaa"
+ARG2="bbb"
++ ./getopt_ex.sh aaa bbb --dry-run
+$@='aaa bbb --dry-run'
+VALID_ARGUMENTS=0
+NAMESPACE=""
+DRY_RUN="true"
+ARG1="aaa"
+ARG2="bbb"
++ ./getopt_ex.sh aaa --namespace n1 bbb --dry-run
+$@='aaa --namespace n1 bbb --dry-run'
+VALID_ARGUMENTS=0
+NAMESPACE="n1"
+DRY_RUN="true"
+ARG1="aaa"
+ARG2="bbb"
+----

@@ -1,3 +1,4 @@
 <<index.adoc#,Index>> {vbar}
 <<bash.adoc#,Bash>> {vbar}
+<<option-parsing-in-bash.adoc#,Option parsing>> {vbar}
 <<terminal_emulators.adoc#,Terminal>> +
