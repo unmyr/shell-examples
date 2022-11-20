@@ -107,6 +107,46 @@ Or you could use:
 $ exec $SHELL -l
 ----
 
+=== Built-in variables
+
+==== BASH_SOURCE
+
+[source,shell]
+.test_bash_source.sh
+----
+#!/bin/bash
+echo "\$0=$0, \${BASH_SOURCE[0]}=${BASH_SOURCE[0]}"
+----
+
+[source,console]
+----
+$ ./test_bash_source.sh
+$0                     ${BASH_SOURCE[0]}
+====================== ======================
+./test_bash_source.sh  ./test_bash_source.sh
+$ bash test_bash_source.sh
+$0                     ${BASH_SOURCE[0]}
+====================== ======================
+test_bash_source.sh    test_bash_source.sh
+$ bash ./test_bash_source.sh
+$0                     ${BASH_SOURCE[0]}
+====================== ======================
+./test_bash_source.sh  ./test_bash_source.sh
+$ . ./test_bash_source.sh
+$0                     ${BASH_SOURCE[0]}
+====================== ======================
+-bash                  ./test_bash_source.sh
+$ source ./test_bash_source.sh
+$0                     ${BASH_SOURCE[0]}
+====================== ======================
+-bash                  ./test_bash_source.sh
+----
+
+.References
+* https://stackoverflow.com/questions/35006457/choosing-between-0-and-bash-source[choosing between $0 and BASH_SOURCE - Stack Overflow^]
+
+
+
 === Boolean
 
 * Check true/false is built-in
