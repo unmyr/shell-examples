@@ -89,3 +89,23 @@ export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=35:ln=32:bn=32:se=36'
 
 .References
 * https://www.gnu.org/software/grep/manual/grep.html#index-GREP_005fCOLORS-environment-variable[GNU Grep 3.7 > 2.2 Environment Variables^]
+
+
+=== Input password
+
+[source,shell]
+.read_password.sh
+----
+include::../src/read_password.sh[]
+----
+
+[source,console]
+.Example outputs
+----
+$ bash read_password.sh
+Password:
+PASS: aaa
+----
+
+.References
+* https://stackoverflow.com/questions/3980668/how-to-get-a-password-from-a-shell-script-without-echoing[bash - How to get a password from a shell script without echoing - Stack Overflow^]
