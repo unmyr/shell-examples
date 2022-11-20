@@ -109,3 +109,29 @@ PASS: aaa
 
 .References
 * https://stackoverflow.com/questions/3980668/how-to-get-a-password-from-a-shell-script-without-echoing[bash - How to get a password from a shell script without echoing - Stack Overflow^]
+
+=== Read from pipe
+
+* Check if a pipe is empty and run a command
++
+[source,shell]
+.pipe_test.sh
+----
+include::../src/pipe_test.sh[]
+----
++
+[source,console]
+.Example outputs
+----
+$ ./pipe_test.sh
+Pipe not open
+$ printf "%s\n%s\n%s\n" "foo" "bar" "baz" | ./pipe_test.sh
+Pipe available
+> foo
+> bar
+> baz
+----
+
+.References
+* https://stackoverflow.com/questions/20046804/can-i-test-for-an-open-stdin-stream-from-within-a-bash-script[io - Can I test for an open stdin stream from within a bash script? - Stack Overflow^] +
+  shell check if pipe is opened stdin - Google Search
