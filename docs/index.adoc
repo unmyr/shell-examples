@@ -352,6 +352,15 @@ $ cksum alpha_num_32_*.txt
 
 ==== jq
 
+* remove double quotes from jq output
++
+[source,console]
+----
+echo '{"password": "abc"}' | jq -r .password
+----
+
+* Make JQ output a table
++
 [source,console]
 ----
 $ echo '[{"name":"apple", "price":200}, {"name":"banana", "price":100}]' | jq -r '.[] | [.name, .price] | @t
@@ -360,12 +369,8 @@ apple   200
 banana  100
 ----
 
-[source,console]
-----
-$ echo '[{"name":"apple", "price":200}, {"name":"banana", "price":100}]' | jq -r '.[] | select(.name=="apple") | [.name, .price] | @tsv' | column -t
-apple  200
-----
-
+* Make JQ output a table with index
++
 [source,console]
 ----
 $ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple"}}, {"id":"2", "price":200, "Tags":{"Name": "banana"}}]' | jq -r '.[] | [.id, .price, .Tags.Name] | @tsv' | column -t
@@ -373,6 +378,8 @@ $ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple"}}, {"id":"2", "price":2
 2  200  banana
 ----
 
+* Make JQ output a table with indices from an array containing tags
++
 [source,console]
 ----
 $ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple", "Env":"dev"}}, {"id":"2", "price":200, "Tags":{"Name": "banana", "Env":"prod"}}]' | jq -r '.[] | [.id, .price, .Tags.Name] | @tsv' | column -t
@@ -380,11 +387,100 @@ $ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple", "Env":"dev"}}, {"id":"
 2  200  banana
 ----
 
+* Select a record from array
++
+[source,console]
+----
+$ echo '[{"name":"apple", "price":200}, {"name":"banana", "price":100}]' | jq -r '.[] | select(.name=="apple") | [.name, .price] | @tsv' | column -t
+apple  200
+----
+
+* Select a record from array containing tags
++
 [source,console]
 ----
 $ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple", "Env":"dev"}}, {"id":"2", "price":200, "Tags":{"Name": "banana"}}]' | jq -r '.[] | select(.Tags.Env == "dev") | [.id, .price, .Tags.Name] | @tsv' | column -t
 1  200  apple
 ----
+
+* Using jq to base64 decode k8s secret values
+
+** preserve structure
++
+[source,shell]
+.Using map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '.data |= map_values(@base64d)'
+----
++
+[source,shell]
+.Without map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '{"data": {"username": (.data.username|@base64d), "password": (.data.password|@base64d)}}'
+----
++
+[source,json]
+.Result
+----
+{
+  "data": {
+    "username": "John doe",
+    "password": "dead beef"
+  }
+}
+----
+
+** Extract subtree
++
+[source,shell]
+.Using map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '.data | map_values(@base64d)'
+----
++
+[source,shell]
+.Without map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '{"username": (.data.username|@base64d), "password": (.data.password|@base64d)}'
+----
++
+[source,json]
+.Results
+----
+{
+  "username": "John doe",
+  "password": "dead beef"
+}
+----
+
+* map examples
++
+[source,console]
+----
+$ echo "[1,2,3]" | jq '. | map(.*2) | map(select(. >= 3))'
+[
+  4,
+  6
+]
+----
+
+* Collatz
++
+[source,shell]
+----
+echo '[2, 3, 4]' | jq '.[] | if . % 2 == 0 then ./2 else . * 3 + 1 end'
+----
++
+[source,plaintext]
+.Result
+----
+1
+10
+2
+----
+
+
+
 
 === Networking
 
