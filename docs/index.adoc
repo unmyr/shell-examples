@@ -464,7 +464,7 @@ $ echo "[1,2,3]" | jq '. | map(.*2) | map(select(. >= 3))'
 ]
 ----
 
-* Collatz
+* Collatz map
 +
 [source,shell]
 ----
@@ -478,9 +478,6 @@ echo '[2, 3, 4]' | jq '.[] | if . % 2 == 0 then ./2 else . * 3 + 1 end'
 10
 2
 ----
-
-
-
 
 === Networking
 
