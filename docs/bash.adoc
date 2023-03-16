@@ -229,6 +229,46 @@ True
 .References
 * https://stackoverflow.com/questions/19670061/bash-if-false-returns-true-instead-of-false-why[boolean - bash "if [ false \];" returns true instead of false -- why? - Stack Overflow^]
 
+=== Array
+
+* Looping over an array using index
++
+[source,shell]
+----
+#!/bin/bash
+a=(foo bar "Hello world")
+for ((i = 0; i < ${#a[@]}; i++)); do
+    echo "$i: ${a[$i]}"
+done
+----
+
+* Looping over an array using elements
+
+** Using double quotes around array
++
+[source,shell]
+----
+#!/bin/bash
+a=(foo bar "Hello world")
+for v in "${a[@]}"; do
+    echo "$v"
+done
+----
+
+** Using IFS
++
+[source,shell]
+----
+#!/bin/bash
+a=(foo bar "Hello world")
+IFS_OLD="$IFS"
+IFS=""
+for v in ${a[@]}; do
+    echo "$v"
+done
+IFS="$IFS_OLD"
+----
+
 === Flow control statements
 
 * Using counter

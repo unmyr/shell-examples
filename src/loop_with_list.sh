@@ -1,4 +1,4 @@
 #!/bin/bash
-for s in "foo" "bar" "baz"; do
+for s in "foo" "bar" "Hello world"; do
     echo $s
 done
