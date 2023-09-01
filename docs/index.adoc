@@ -592,12 +592,22 @@ kube-ps1-0.7.0/CONTRIBUTING.md
 ...
 ----
 
+* How to download a file from a URL with redirection using wget
++
+[source,shell]
+----
+wget -O docker-credential-pass https://github.com/docker/docker-credential-helpers/releases/download/v0.8.0/docker-credential-pass-v0.8.0.linux-amd64
+----
+
 ==== curl
 
+.References
 * https://ryuichi1208.hateblo.jp/entry/2021/10/16/220000[よく使うcurlコマンドのオプション - 地方エンジニアの学習日記^] +
   curl リダイレクト無効 - Google 検索
 * https://stackoverflow.com/questions/38906626/curl-to-return-http-status-code-along-with-the-response[shell - Curl to return http status code along with the response - Stack Overflow^] +
   curl show status code - Google 検索
+
+//^
 
 * Show status code
 +
@@ -665,3 +675,286 @@ $ curl https://httpbin.org/status/302 --verbose
 * Connection #0 to host httpbin.org left intact
 ----
 ====
+
+* How to download a file from a URL with redirection using Curl +
+If the server reports that the requested page has moved to a different location (indicated with a Location: header and a 3XX response code), -L option will make curl redo the request on the new place:
++
+[source,shell]
+----
+curl -L -o docker-credential-pass https://github.com/docker/docker-credential-helpers/releases/download/v0.8.0/docker-credential-pass-v0.8.0.linux-amd64
+----
+
+----
+$ curl -fsSLI -o /dev/null -w %{url_effective} https://api.github.com/repos/docker/docker-credential-helpers/releases/latest
+https://api.github.com/repos/docker/docker-credential-helpers/releases/latest
+----
+
+=== Security
+
+==== gpg2
+
+* Install gnupg2
++
+[source,shell]
+----
+sudo apt-get install -y gnupg2
+----
++
+[source,console]
+.Verify installed
+----
+$ dpkg -L gnupg2
+/.
+/usr
+/usr/bin
+/usr/share
+/usr/share/doc
+/usr/share/doc/gnupg2
+/usr/share/doc/gnupg2/NEWS.Debian.gz
+/usr/share/doc/gnupg2/copyright
+/usr/share/man
+/usr/share/man/man1
+/usr/bin/gpg2
+/usr/share/doc/gnupg2/changelog.Debian.gz
+/usr/share/man/man1/gpg2.1.gz
+$ type gpg2
+gpg2 is /usr/bin/gpg2
+----
+
+* Generate Key
++
+[source,shell]
+----
+gpg2 --full-generate-key
+----
++
+[source,console]
+----
+$ gpg2 --full-generate-key
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+  (14) Existing key from card
+Your selection? 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (3072)
+Requested keysize is 3072 bits
+Please specify how long the key should be valid.
+         0 = key does not expire
+      <n>  = key expires in n days
+      <n>w = key expires in n weeks
+      <n>m = key expires in n months
+      <n>y = key expires in n years
+Key is valid for? (0)
+Key does not expire at all
+Is this correct? (y/N) y
+
+GnuPG needs to construct a user ID to identify your key.
+
+Real name: alice
+Email address: alice@example.com
+Comment:
+You selected this USER-ID:
+    "alice <alice@example.com>"
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+gpg: key 296D484FE711E100 marked as ultimately trusted
+gpg: revocation certificate stored as '/home/guest/.gnupg/openpgp-revocs.d/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.rev'
+public and secret key created and signed.
+
+pub   rsa3072 2023-08-30 [SC]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid                      alice <alice@example.com>
+sub   rsa3072 2023-08-30 [E]
+----
+
+* List public keys
+
+** `gpg2 --list-keys`
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+----
+
+* List private keys
+
+** `gpg2 --list-secret-keys` +
++
+[source,console]
+----
+$ gpg2 --list-secret-keys
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2025-08-28
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid           [ultimate] alice <alice@example.com>
+ssb   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+** `gpg2 --list-secret-keys --keyid-format=short` +
+The 'short' keyid is the low 32 bits, or last 8 hex digits, of the fingerprint and thus is 52A2ECF7. 
++
+[source,console]
+----
+$ gpg2 --list-secret-keys --keyid-format=short
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072/5A0DBDE0 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid         [ultimate] alice <alice@example.com>
+ssb   rsa3072/52A2ECF7 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+** `gpg2 --list-secret-keys --keyid-format=long` +
+The 'long' keyid is the low 64 bits, or last 16 hex digits, of the fingerprint and thus is 0E85956C52A2ECF7.
++
+[source,console]
+----
+$ gpg2 --list-secret-keys --keyid-format=long
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072/412B0A1F5A0DBDE0 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid                 [ultimate] alice <alice@example.com>
+ssb   rsa3072/0E85956C52A2ECF7 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+* Delete a public key
+
+** Delete public keys
++
+[source,shell]
+----
+gpg2 --delete-keys your-public-key
+----
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --delete-keys XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+pub  rsa3072/412B0A1F5A0DBDE0 2023-08-29 alice <alice@example.com>
+
+Delete this key from the keyring? (y/N) y
+$ gpg2 --list-keys
+gpg: checking the trustdb
+gpg: no ultimately trusted keys found
+----
+
+** Delete secret keys
++
+[source,shell]
+----
+gpg2 --delete-secret-keys your-public-key
+----
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --list-secret-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+ssb   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --delete-secret-keys
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+gpg: Note: No key
+$ gpg2 --delete-secret-keys XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+sec  rsa3072/412B0A1F5A0DBDE0 2023-08-29 alice <alice@example.com>
+
+Delete this key from the keyring? (y/N) y
+This is a secret key! - really delete? (y/N) y
+$ gpg2 --list-secret-keys
+$
+----
+
+==== pass
+
+* https://www.passwordstore.org/[Pass: The Standard Unix Password Manager^]
+
+//^
+
+. Install Pass and gpg2
++
+[source,shell]
+----
+sudo apt-get install -y gnupg2 pass
+----
+
+. Generate a GPG Key
++
+[source,shell]
+----
+gpg2 --full-generate-key
+----
+
+. Show keys
++
+[source,shell]
+----
+gpg2 --list-secret-keys | grep -E -B 1 '^uid\W' | head -n1 | sed 's/^ *//g'
+----
+
+. Initialize the password store
++
+[source,shell]
+----
+pass init "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+----
