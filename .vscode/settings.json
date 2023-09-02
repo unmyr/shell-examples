@@ -34,11 +34,13 @@
         "openpgp",
         "OPTARG",
         "OPTIND",
+        "PKEY",
         "psql",
         "pubring",
         "Qiita",
         "readlines",
         "realpath",
+        "sigalg",
         "toclevels",
         "trustdb",
         "zxvf"

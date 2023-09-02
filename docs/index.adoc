@@ -689,6 +689,79 @@ $ curl -fsSLI -o /dev/null -w %{url_effective} https://api.github.com/repos/dock
 https://api.github.com/repos/docker/docker-credential-helpers/releases/latest
 ----
 
+==== OpenSSL
+
+* Check TLS certificate
++
+[source,shell]
+----
+echo | openssl s_client -connect cert-manager-webhook.cert-manager.svc:443 2> /dev/null
+----
++
+[source,console]
+----
+root@ubuntu:/# echo | openssl s_client -connect cert-manager-webhook.cert-manager.svc:443 2> /dev/null
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:
+   i:CN = cert-manager-webhook-ca
+   a:PKEY: id-ecPublicKey, 384 (bit); sigalg: ecdsa-with-SHA384
+   v:NotBefore: Sep  2 00:37:28 2023 GMT; NotAfter: Sep  9 00:37:28 2023 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIICIzCCAamgAwIBAgIQCWxMgoWmONBUHVAg2AgKMzAKBggqhkjOPQQDAzAiMSAw
+...
+5hRy1RX2pysBeICdO/ijkL8XrGVzx/8=
+-----END CERTIFICATE-----
+subject=
+issuer=CN = cert-manager-webhook-ca
+---
+No client certificate CA names sent
+Peer signing digest: SHA384
+Peer signature type: ECDSA
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 939 bytes and written 403 bytes
+Verification error: unable to verify the first certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256
+Server public key is 384 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 21 (unable to verify the first certificate)
+---
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_128_GCM_SHA256
+    Session-ID: BF27D40EED5FD74DDD0E94C56CF719C3B32FD22BB58E32B9C495E1817409621E
+    Session-ID-ctx:
+    Resumption PSK: F19524F9CA7577DDD8E49EA767CDEE852816B1CCA7E031776E4E04E6EFCAC882
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 604800 (seconds)
+    TLS session ticket:
+    0000 - c0 d3 42 f5 74 62 0b 29-d8 c3 81 c6 1f 93 f6 22   ..B.tb.)......."
+    ....
+    0070 - b5                                                .
+
+    Start Time: 1693616142
+    Timeout   : 7200 (sec)
+    Verify return code: 21 (unable to verify the first certificate)
+    Extended master secret: no
+    Max Early Data: 0
+---
+read R BLOCK
+root@ubuntu:/#
+----
+
 === Security
 
 ==== gpg2
