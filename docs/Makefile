@@ -10,6 +10,7 @@ include $(DOC_ROOT)/asciidoc.mk
 HTML_LIST=\
 mkdir_and_copy \
 $(DIST_DIR)/bash.html \
+$(DIST_DIR)/net-dns-nsd.html \
 $(DIST_DIR)/option-parsing-in-bash.html \
 $(DIST_DIR)/terminal_emulators.html \
 $(DIST_DIR)/index.html

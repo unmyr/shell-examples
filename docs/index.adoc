@@ -570,6 +570,53 @@ $ ruby -e "require 'socket'; puts Socket.getifaddrs.select{|i| i.name == 'eth0' 
 172.31.175.235
 ----
 
+==== List of All Open Ports
+
+* List of open TCP ports on Ubuntu Linux
++
+[source,console]
+----
+$ ss -lnt
+State       Recv-Q       Send-Q             Local Address:Port              Peer Address:Port      Process
+...
+LISTEN      0            4096                   127.0.0.1:38927                  0.0.0.0:*
+LISTEN      0            4096                     0.0.0.0:30000                  0.0.0.0:*
+LISTEN      0            4096               127.0.0.53%lo:53                     0.0.0.0:*
+----
+
+** Check listening ports with `lsof` 
++
+[source,console]
+----
+$ sudo lsof -nP -iTCP -sTCP:LISTEN
+[sudo] password for alice:
+COMMAND    PID            USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+systemd-r  107 systemd-resolve   14u  IPv4  20694      0t0  TCP 127.0.0.53:53 (LISTEN)
+docker-pr  592            root    4u  IPv4  23641      0t0  TCP 127.0.0.1:38927 (LISTEN)
+...
+node      5896           alice   19u  IPv4  57661      0t0  TCP 127.0.0.1:44685 (LISTEN)
+----
++
+--
+The options used are as follows:
+
+[horizontal]
+`-n`:: Do not convert port numbers to port names.
+`-p`:: Do not resolve host names, show numerical addresses.
+`-iTCP` `-sTCP:LISTEN`:: Show only network files with TCP state LISTEN.
+--
+
+* List of open UDP ports on Ubuntu Linux
++
+[source,console]
+----
+$ ss -lnu
+State        Recv-Q       Send-Q             Local Address:Port             Peer Address:Port      Process
+UNCONN       0            0                  127.0.0.53%lo:53                    0.0.0.0:*
+UNCONN       0            0                      127.0.0.1:323                   0.0.0.0:*
+UNCONN       0            0                          [::1]:323                      [::]:*
+----
+
 ==== wget
 
 * redirect wget response to standard out
