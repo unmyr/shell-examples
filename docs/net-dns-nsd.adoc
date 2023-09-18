@@ -1,6 +1,7 @@
 ifndef::leveloffset[]
 :toc: left
 :toclevels: 3
+:icons: font
 
 include::header.adoc[]
 
@@ -32,6 +33,7 @@ nsd -v
 === Configure NSD
 
 . Backup `nsd.conf`
++
 --
 . Check files
 +
@@ -50,8 +52,14 @@ sudo cp -p /etc/nsd/nsd.conf /etc/nsd/nsd.conf.org
 ----
 --
 
-. Edit `/etc/nsd/nsd.conf` +
-NOTE: Used for Private/internal DNS Namespaces (RFC 6762 (Appendix G))
+. Edit `/etc/nsd/nsd.conf`
++
+--
+[NOTE]
+====
+Used for Private/internal DNS Namespaces (RFC 6762 (Appendix G))
+====
+--
 +
 [source,shell]
 ----
