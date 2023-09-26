@@ -11,18 +11,816 @@ endif::[]
 
 == Ubuntu
 
-=== sudo
+=== User management
 
-==== Change visudo editor
+==== sudo
 
-* How to change visudo editor from nano to vim?
+===== Change visudo editor
+
+* How to change `visudo` editor from nano to vim?
 +
 [source,shell]
 ----
 sudo update-alternatives --config editor
 ----
 
+=== Arithmetic Operation
+
+* 1/3
++
+[source,console]
+----
+$ echo "scale=6; 1/3" | bc
+.333333
+$ awk 'BEGIN {print 1 / 3}'
+0.333333
+$ python3 -c "print(f'{1/3:.6f}')"
+0.333333
+----
+
+* floating point
+
+** Using bc
++
+[source,console]
+----
+$ echo "100 * (3.1 + .04)" | bc
+314.00
+$ echo "scale=17; 1/3" | bc
+.33333333333333333
+----
+
+** Using python
++
+[source,console]
+----
+$ python -c "print(100 * (3.1 + .04))"
+314.0
+$ python -c "print(1/3)"
+0.3333333333333333
+----
+
+=== Date & Time
+
+* Timezone
++
+[source,console]
+----
+$ TZ=UTC date
+Wed Aug 24 09:14:29 UTC 2022
+$ date -u
+Wed Aug 24 10:20:11 UTC 2022
+$ TZ='Asia/Tokyo' date
+Wed Aug 24 18:14:42 JST 2022
+----
+
+* Output date/time in ISO 8601 format
++
+[source,console]
+----
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z'
+2022-08-24T18:16:44.005575600+0900
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022/08/31'
+2022-08-31T00:00:00.000000000+0900
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022/8/31'
+2022-08-31T00:00:00.000000000+0900
+----
+
+* Parse date
+
+** Using local time
++
+[source,console]
+----
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022-08-31'
+2022-08-31T00:00:00.000000000+0900
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022-08-31 23:30:59.123456789'
+2022-08-31T23:30:59.123456789+0900
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022-08-31T23:30:59.123456789'
+2022-08-31T23:30:59.123456789+0900
+----
+
+** Using time zone
++
+[source,console]
+----
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022-08-31 23:30:59.123456789+0000'
+2022-09-01T08:30:59.123456789+0900
+$ date '+%Y-%m-%dT%H:%M:%S.%N%z' -d '2022-08-31 23:30:59.123456789+00:00'
+2022-09-01T08:30:59.123456789+0900
+----
+
+* past day
+
+** Previous day / Yesterday
++
+[source,shell]
+----
+date '+%Y-%m-%d' -d yesterday
+----
+
+** 30 days ago
++
+[source,shell]
+----
+date '+%Y-%m-%d' -d "-30 days"
+----
+
+** Previous month
++
+[source,shell]
+----
+date '+%Y-%m-%d' --date='-1 month'
+----
+
+* _n_ days later
+
+** Next day / Tomorrow
++
+[source,shell]
+----
+date '+%Y-%m-%d' -d tomorrow
+----
+
+** 30 days later
++
+[source,shell]
+----
+date '+%Y-%m-%d' -d "30days"
+----
+
+** Next month
++
+[source,shell]
+----
+date '+%Y-%m-%d' --date='1 month'
+----
+
+* Get the date of last month's last day
++
+[source,shell]
+----
+date '+%Y-%m-%d' --date="$(date +%Y-%m-01) -1 day"
+----
+
+.References
+* https://hydrocul.github.io/wiki/commands/date.html[date コマンド | コマンドの使い方(Linux) | hydroculのメモ^]
+
+
+=== Text Processing
+
+==== Combining echo and cat on Unix
+
+* Prepend string
++
+[source,shell]
+.prepend_cat.sh
+----
+#!/bin/bash
+TMP_FILE=$(mktemp $0-XXX.txt) && {
+    cat > $TMP_FILE <<EOF
+Banana
+Cherry
+EOF
+    echo "Apple" | cat - $TMP_FILE
+}
+----
++
+[source,shell]
+.prepend_sed.sh
+----
+#!/bin/bash
+TMP_FILE=$(mktemp $0-XXX.txt) && {
+    cat > $TMP_FILE <<EOF
+Banana
+Cherry
+EOF
+    sed -e '1s/^/Apple\n/' $TMP_FILE
+}
+----
+
+==== Trailing spaces
+
+* Find Trailing spaces
++
+[source,bash]
+----
+find . -type f -name '*.rs' -exec egrep -l " +$" {} \;
+----
++
+[source,bash]
+----
+grep -nr '[[:blank:]]$' --include='*.rs' .
+----
+
+==== split a string
+
+[source,console]
+----
+$ IFS="," read -ra ary <<< "a,b,c"
+$ echo ${ary[0]}
+a
+$ echo ${ary[1]}
+b
+----
+
+[source,console]
+----
+$ echo "a,b,c" | awk -F, '{print $1$2$3}'
+abc
+----
+
+==== exclude a specific line
+
+[source,console]
+----
+$ printf "Apple\nBanana\nCherry\nDurian\n" | sed -e '/\(Banana\|Durian\)/d'
+Apple
+Cherry
+$ printf "Apple\nBanana\nCherry\nDurian\n" | sed -ne '/\(Banana\|Durian\)/!p'
+Apple
+Cherry
+----
+
+==== Exclude specific pattern
+
+* Exclude specific pattern
++
+[source,shell]
+----
+printf "Cloudy in Tokyo.\nCloudy in Kyoto.\nCloudy in Osaka.\n" | sed -e '/Tokyo/!s/Cloudy/Sunny/'
+----
++
+[source,plaintext]
+.Results
+----
+Cloudy in Tokyo.
+Sunny in Kyoto.
+Sunny in Osaka.
+----
+
+==== Get body of table
+
+[source,markdown]
+----
+
+
+| id | name   | price  | ModTime
+| --:| ------ | ------:| --------------------------
+| 1  | Apple  |    100 | 2022-09-05 19:00:50.227641
+| 2  | Banana |    120 | 2022-09-05 19:00:50.227641
+| 3  | Orange |    110 | 2022-09-05 19:00:50.227641
+----
+
+[source,console]
+----
+$ cat table.txt | sed -e '/ModTime/,+2!d'
+| id | name   | price  | ModTime
+| --:| ------ | ------:| --------------------------
+| 1  | Apple  |    100 | 2022-09-05 19:00:50.227641
+$ cat table.txt | sed -e '/ModTime/,+2!d' | sed -e '$!d'
+| 1  | Apple  |    100 | 2022-09-05 19:00:50.227641
+----
+
+[source,console]
+----
+$ cat table.txt | sed -ne '/ModTime/,+2p'
+| id | name   | price  | ModTime
+| --:| ------ | ------:| --------------------------
+| 1  | Apple  |    100 | 2022-09-05 19:00:50.227641
+$ cat table.txt | sed -ne '/ModTime/,+2p' | sed -e '$!d'
+| 1  | Apple  |    100 | 2022-09-05 19:00:50.227641
+----
+
+==== base64, md5 digest, etc
+
+[source,console]
+----
+$ echo -n "abcdefghijklmnopqrstuvwxyz012345" | openssl enc -base64
+YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXowMTIzNDU=
+----
+
+[source,console]
+----
+$ echo -n "abcdefghijklmnopqrstuvwxyz012345" | openssl dgst -md5 -binary | openssl enc -base64
+NX6C25NPxF9KJbS4Pci9GQ==
+----
+
+===== MD5
+
+* Linux
++
+[source,console]
+----
+$ echo -n "abcdefghijklmnopqrstuvwxyz012345" > alpha_num_32_1.txt
+$ echo -n "abcdefghijklmnopqrstuvwxyz678901" > alpha_num_32_2.txt
+$ md5sum alpha_num_32_1.txt alpha_num_32_2.txt
+357e82db934fc45f4a25b4b83dc8bd19  alpha_num_32_1.txt
+4523cc53470174f4d0b2b2e97fad4d5e  alpha_num_32_2.txt
+----
++
+[source,console]
+----
+$ echo -n "abcdefghijklmnopqrstuvwxyz012345" > alpha_num_32_1.txt
+$ echo -n "abcdefghijklmnopqrstuvwxyz678901" > alpha_num_32_2.txt
+$ openssl dgst -md5 alpha_num_32_*.txt
+MD5(alpha_num_32_1.txt)= 357e82db934fc45f4a25b4b83dc8bd19
+MD5(alpha_num_32_2.txt)= 4523cc53470174f4d0b2b2e97fad4d5e
+----
+
+* Windows
++
+[source,console]
+----
+> Write-Output "abcdefghijklmnopqrstuvwxyz012345" | Out-File -NoNewline alpha_num_32_1.txt
+> Write-Output "abcdefghijklmnopqrstuvwxyz678901" | Out-File -NoNewline alpha_num_32_2.txt
+> certutil -hashfile alpha_num_32_1.txt MD5
+MD5 hash of alpha_num_32_1.txt:
+cde266ed871443f792f8258c481339cb
+CertUtil: -hashfile command completed successfully.
+> certutil -hashfile alpha_num_32_2.txt MD5
+MD5 hash of alpha_num_32_2.txt:
+40c2c8209765e6614689a85a686115e1
+CertUtil: -hashfile command completed successfully.
+----
++
+[source,console]
+--------
+> Get-FileHash alpha_num_32_[12].txt -Algorithm MD5 | Select-Object Hash,Path
+
+Hash                             Path
+----                             ----
+CDE266ED871443F792F8258C481339CB C:\Users\john.due\alpha_num_32_1.txt
+40C2C8209765E6614689A85A686115E1 C:\Users\john.due\alpha_num_32_2.txt
+--------
+
+===== CRC
+
+[source,console]
+----
+$ cksum alpha_num_32_*.txt
+3753159134 32 alpha_num_32_1.txt
+4130537573 32 alpha_num_32_2.txt
+----
+
+==== jq
+
+* remove double quotes from jq output
++
+[source,console]
+----
+echo '{"password": "abc"}' | jq -r .password
+----
+
+* Make JQ output a table
++
+[source,console]
+----
+$ echo '[{"name":"apple", "price":200}, {"name":"banana", "price":100}]' | jq -r '.[] | [.name, .price] | @t
+sv' | column -t
+apple   200
+banana  100
+----
+
+* Make JQ output a table with index
++
+[source,console]
+----
+$ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple"}}, {"id":"2", "price":200, "Tags":{"Name": "banana"}}]' | jq -r '.[] | [.id, .price, .Tags.Name] | @tsv' | column -t
+1  200  apple
+2  200  banana
+----
+
+* Make JQ output a table with indices from an array containing tags
++
+[source,console]
+----
+$ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple", "Env":"dev"}}, {"id":"2", "price":200, "Tags":{"Name": "banana", "Env":"prod"}}]' | jq -r '.[] | [.id, .price, .Tags.Name] | @tsv' | column -t
+1  200  apple
+2  200  banana
+----
+
+* Select a record from array
++
+[source,console]
+----
+$ echo '[{"name":"apple", "price":200}, {"name":"banana", "price":100}]' | jq -r '.[] | select(.name=="apple") | [.name, .price] | @tsv' | column -t
+apple  200
+----
+
+* Select a record from array containing tags
++
+[source,console]
+----
+$ echo '[{"id":"1", "price":200, "Tags":{"Name": "apple", "Env":"dev"}}, {"id":"2", "price":200, "Tags":{"Name": "banana"}}]' | jq -r '.[] | select(.Tags.Env == "dev") | [.id, .price, .Tags.Name] | @tsv' | column -t
+1  200  apple
+----
+
+* Using jq to base64 decode k8s secret values
+
+** preserve structure
++
+[source,shell]
+.Using map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '.data |= map_values(@base64d)'
+----
++
+[source,shell]
+.Without map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '{"data": {"username": (.data.username|@base64d), "password": (.data.password|@base64d)}}'
+----
++
+[source,json]
+.Result
+----
+{
+  "data": {
+    "username": "John doe",
+    "password": "dead beef"
+  }
+}
+----
+
+** Extract subtree
++
+[source,shell]
+.Using map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '.data | map_values(@base64d)'
+----
++
+[source,shell]
+.Without map_values
+----
+echo '{"data":{"username": "Sm9obiBkb2U=", "password": "ZGVhZCBiZWVm"}}' | jq '{"username": (.data.username|@base64d), "password": (.data.password|@base64d)}'
+----
++
+[source,json]
+.Results
+----
+{
+  "username": "John doe",
+  "password": "dead beef"
+}
+----
+
+* map examples
++
+[source,console]
+----
+$ echo "[1,2,3]" | jq '. | map(.*2) | map(select(. >= 3))'
+[
+  4,
+  6
+]
+----
+
+* Collatz map
++
+[source,shell]
+----
+echo '[2, 3, 4]' | jq '.[] | if . % 2 == 0 then ./2 else . * 3 + 1 end'
+----
++
+[source,plaintext]
+.Result
+----
+1
+10
+2
+----
+
 === Networking
+
+==== IP Command
+
+* Show specific interface
++
+[source,shell]
+.Show specific interface
+----
+ip address show dev eth0
+----
+
+* Display a specific interface and protocol family
++
+[source,shell]
+.IPv4
+----
+ip --family inet address show dev eth0
+ip -4 a show dev eth0
+----
++
+[source,shell]
+.IPv6
+----
+ip --family inet6 address show dev eth0
+ip -6 a show dev eth0
+----
+
+==== Get IP Address
+
+* Using `awk`
++
+[source,console]
+----
+$ ip address show eth0 | awk '/inet / {print $2}' | cut -d/ -f1
+----
++
+[source,console]
+----
+$ ip address show eth0 | awk '/inet / {split($2,a,"/"); print a[1]}'
+172.31.175.235
+----
++
+[source,console]
+----
+$ ip address show eth0 | awk '/inet / {gsub(/\/[0-9]+/, "", $2); print $2}'
+172.31.175.235
+----
+
+* Using `sed`
++
+[source,console]
+----
+$ ip address show eth0 | sed -ne '/inet /p' | sed -e 's@.*inet \(.*\)/.*@\1@'
+172.31.175.235
+----
+
+* Using `Grep`
++
+[source,console]
+----
+$ ip address show eth0 | grep -Eo '[0-9]+(\.[0-9]+){3}' | head -1
+----
+
+* Using Python
++
+[source,console]
+----
+$ ip address show eth0 | python3 -c "import re,sys; print(re.findall('[ ]+inet (.*)/', sys.stdin.read())[0])"
+----
++
+[source,console]
+----
+$ ip address show eth0 | python3 -c "import re, sys; [print(line.split()[1].split('/')[0]) for line in sys.stdin.readlines() if 'inet ' in line]"
+172.31.175.235
+----
+
+* Using Ruby
++
+[source,console]
+----
+$ ip address show eth0 | ruby -e "puts STDIN.read.scan(/inet ([0-9.]+)/)"
+172.31.175.235
+----
++
+[source,console]
+----
+$ ruby -e "require 'socket'; puts Socket.getifaddrs.select{|i| i.name == 'eth0' and i.addr.ipv4?}.first.addr.ip_address"
+172.31.175.235
+----
+
+==== List of All Open Ports
+
+* List of open TCP ports on Ubuntu Linux
++
+[source,console]
+----
+$ ss -lnt
+State       Recv-Q       Send-Q             Local Address:Port              Peer Address:Port      Process
+...
+LISTEN      0            4096                   127.0.0.1:38927                  0.0.0.0:*
+LISTEN      0            4096                     0.0.0.0:30000                  0.0.0.0:*
+LISTEN      0            4096               127.0.0.53%lo:53                     0.0.0.0:*
+----
+
+** Check listening ports with `lsof` 
++
+[source,console]
+----
+$ sudo lsof -nP -iTCP -sTCP:LISTEN
+[sudo] password for alice:
+COMMAND    PID            USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+systemd-r  107 systemd-resolve   14u  IPv4  20694      0t0  TCP 127.0.0.53:53 (LISTEN)
+docker-pr  592            root    4u  IPv4  23641      0t0  TCP 127.0.0.1:38927 (LISTEN)
+...
+node      5896           alice   19u  IPv4  57661      0t0  TCP 127.0.0.1:44685 (LISTEN)
+----
++
+--
+The options used are as follows:
+
+[horizontal]
+`-n`:: Do not convert port numbers to port names.
+`-p`:: Do not resolve host names, show numerical addresses.
+`-iTCP` `-sTCP:LISTEN`:: Show only network files with TCP state LISTEN.
+--
+
+* List of open UDP ports on Ubuntu Linux
++
+[source,console]
+----
+$ ss -lnu
+State        Recv-Q       Send-Q             Local Address:Port             Peer Address:Port      Process
+UNCONN       0            0                  127.0.0.53%lo:53                    0.0.0.0:*
+UNCONN       0            0                      127.0.0.1:323                   0.0.0.0:*
+UNCONN       0            0                          [::1]:323                      [::]:*
+----
+
+==== wget
+
+* redirect wget response to standard out
++
+[source,console]
+----
+$ wget -q -O - https://github.com/jonmosco/kube-ps1/archive/refs/tags/v0.7.0.tar.gz | sudo tar zxvf - -C /tmp
+kube-ps1-0.7.0/
+kube-ps1-0.7.0/.gitignore
+kube-ps1-0.7.0/CHANGELOG.md
+kube-ps1-0.7.0/CONTRIBUTING.md
+...
+$ ls -ld /tmp/kube-ps1-0.7.0
+drwxrwxr-x 1 root root 512 Feb 21  2019 /tmp/kube-ps1-0.7.0
+$ wget -qO- https://github.com/jonmosco/kube-ps1/archive/refs/tags/v0.7.0.tar.gz | sudo tar zxvf - -C /tmp
+kube-ps1-0.7.0/
+kube-ps1-0.7.0/.gitignore
+kube-ps1-0.7.0/CHANGELOG.md
+kube-ps1-0.7.0/CONTRIBUTING.md
+...
+----
+
+* How to download a file from a URL with redirection using wget
++
+[source,shell]
+----
+wget -O docker-credential-pass https://github.com/docker/docker-credential-helpers/releases/download/v0.8.0/docker-credential-pass-v0.8.0.linux-amd64
+----
+
+==== curl
+
+.References
+* https://ryuichi1208.hateblo.jp/entry/2021/10/16/220000[よく使うcurlコマンドのオプション - 地方エンジニアの学習日記^] +
+  curl リダイレクト無効 - Google 検索
+* https://stackoverflow.com/questions/38906626/curl-to-return-http-status-code-along-with-the-response[shell - Curl to return http status code along with the response - Stack Overflow^] +
+  curl show status code - Google 検索
+
+//^
+
+* Show status code
++
+[source,console]
+----
+$ curl https://httpbin.org/status/302 -w "%{http_code}\n"
+302
+----
+
+* Show headers
++
+[source,console]
+----
+$ curl https://httpbin.org/status/302 --verbose
+----
++
+[%collapsible]
+====
+[source,plaintext]
+----
+*   Trying 3.94.154.124...
+* TCP_NODELAY set
+* Connected to httpbin.org (3.94.154.124) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/certs/ca-certificates.crt
+  CApath: /etc/ssl/certs
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-AES128-GCM-SHA256
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: CN=httpbin.org
+*  start date: Nov 21 00:00:00 2021 GMT
+*  expire date: Dec 19 23:59:59 2022 GMT
+*  subjectAltName: host "httpbin.org" matched cert's "httpbin.org"
+*  issuer: C=US; O=Amazon; OU=Server CA 1B; CN=Amazon
+*  SSL certificate verify ok.
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x7fffb8d454c0)
+> GET /status/302 HTTP/2
+> Host: httpbin.org
+> User-Agent: curl/7.58.0
+> Accept: */*
+>
+* Connection state changed (MAX_CONCURRENT_STREAMS updated)!
+< HTTP/2 302
+< date: Tue, 12 Jul 2022 15:16:21 GMT
+< content-length: 0
+< server: gunicorn/19.9.0
+< location: /redirect/1
+< access-control-allow-origin: *
+< access-control-allow-credentials: true
+<
+* Connection #0 to host httpbin.org left intact
+----
+====
+
+* How to download a file from a URL with redirection using Curl +
+If the server reports that the requested page has moved to a different location (indicated with a Location: header and a 3XX response code), -L option will make curl redo the request on the new place:
++
+[source,shell]
+----
+curl -L -o docker-credential-pass https://github.com/docker/docker-credential-helpers/releases/download/v0.8.0/docker-credential-pass-v0.8.0.linux-amd64
+----
+
+----
+$ curl -fsSLI -o /dev/null -w %{url_effective} https://api.github.com/repos/docker/docker-credential-helpers/releases/latest
+https://api.github.com/repos/docker/docker-credential-helpers/releases/latest
+----
+
+==== OpenSSL
+
+* Check TLS certificate
++
+[source,shell]
+----
+echo | openssl s_client -connect cert-manager-webhook.cert-manager.svc:443 2> /dev/null
+----
++
+[source,console]
+----
+root@ubuntu:/# echo | openssl s_client -connect cert-manager-webhook.cert-manager.svc:443 2> /dev/null
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:
+   i:CN = cert-manager-webhook-ca
+   a:PKEY: id-ecPublicKey, 384 (bit); sigalg: ecdsa-with-SHA384
+   v:NotBefore: Sep  2 00:37:28 2023 GMT; NotAfter: Sep  9 00:37:28 2023 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIICIzCCAamgAwIBAgIQCWxMgoWmONBUHVAg2AgKMzAKBggqhkjOPQQDAzAiMSAw
+...
+5hRy1RX2pysBeICdO/ijkL8XrGVzx/8=
+-----END CERTIFICATE-----
+subject=
+issuer=CN = cert-manager-webhook-ca
+---
+No client certificate CA names sent
+Peer signing digest: SHA384
+Peer signature type: ECDSA
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 939 bytes and written 403 bytes
+Verification error: unable to verify the first certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256
+Server public key is 384 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 21 (unable to verify the first certificate)
+---
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_128_GCM_SHA256
+    Session-ID: BF27D40EED5FD74DDD0E94C56CF719C3B32FD22BB58E32B9C495E1817409621E
+    Session-ID-ctx:
+    Resumption PSK: F19524F9CA7577DDD8E49EA767CDEE852816B1CCA7E031776E4E04E6EFCAC882
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 604800 (seconds)
+    TLS session ticket:
+    0000 - c0 d3 42 f5 74 62 0b 29-d8 c3 81 c6 1f 93 f6 22   ..B.tb.)......."
+    ....
+    0070 - b5                                                .
+
+    Start Time: 1693616142
+    Timeout   : 7200 (sec)
+    Verify return code: 21 (unable to verify the first certificate)
+    Extended master secret: no
+    Max Early Data: 0
+---
+read R BLOCK
+root@ubuntu:/#
+----
 
 ==== iptables
 
@@ -45,3 +843,272 @@ sudo iptables -L
 sudo iptables -L -v
 ----
 
+=== Security
+
+==== gpg2
+
+* Install gnupg2
++
+[source,shell]
+----
+sudo apt-get install -y gnupg2
+----
++
+[source,console]
+.Verify installed
+----
+$ dpkg -L gnupg2
+/.
+/usr
+/usr/bin
+/usr/share
+/usr/share/doc
+/usr/share/doc/gnupg2
+/usr/share/doc/gnupg2/NEWS.Debian.gz
+/usr/share/doc/gnupg2/copyright
+/usr/share/man
+/usr/share/man/man1
+/usr/bin/gpg2
+/usr/share/doc/gnupg2/changelog.Debian.gz
+/usr/share/man/man1/gpg2.1.gz
+$ type gpg2
+gpg2 is /usr/bin/gpg2
+----
+
+* Generate Key
++
+[source,shell]
+----
+gpg2 --full-generate-key
+----
++
+[source,console]
+----
+$ gpg2 --full-generate-key
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+  (14) Existing key from card
+Your selection? 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (3072)
+Requested keysize is 3072 bits
+Please specify how long the key should be valid.
+         0 = key does not expire
+      <n>  = key expires in n days
+      <n>w = key expires in n weeks
+      <n>m = key expires in n months
+      <n>y = key expires in n years
+Key is valid for? (0)
+Key does not expire at all
+Is this correct? (y/N) y
+
+GnuPG needs to construct a user ID to identify your key.
+
+Real name: alice
+Email address: alice@example.com
+Comment:
+You selected this USER-ID:
+    "alice <alice@example.com>"
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+gpg: key 296D484FE711E100 marked as ultimately trusted
+gpg: revocation certificate stored as '/home/guest/.gnupg/openpgp-revocs.d/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.rev'
+public and secret key created and signed.
+
+pub   rsa3072 2023-08-30 [SC]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid                      alice <alice@example.com>
+sub   rsa3072 2023-08-30 [E]
+----
+
+* List public keys
+
+** `gpg2 --list-keys`
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+----
+
+* List private keys
+
+** `gpg2 --list-secret-keys` +
++
+[source,console]
+----
+$ gpg2 --list-secret-keys
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: next trustdb check due at 2025-08-28
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid           [ultimate] alice <alice@example.com>
+ssb   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+** `gpg2 --list-secret-keys --keyid-format=short` +
+The 'short' keyid is the low 32 bits, or last 8 hex digits, of the fingerprint and thus is 52A2ECF7. 
++
+[source,console]
+----
+$ gpg2 --list-secret-keys --keyid-format=short
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072/5A0DBDE0 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid         [ultimate] alice <alice@example.com>
+ssb   rsa3072/52A2ECF7 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+** `gpg2 --list-secret-keys --keyid-format=long` +
+The 'long' keyid is the low 64 bits, or last 16 hex digits, of the fingerprint and thus is 0E85956C52A2ECF7.
++
+[source,console]
+----
+$ gpg2 --list-secret-keys --keyid-format=long
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072/412B0A1F5A0DBDE0 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <1>
+uid                 [ultimate] alice <alice@example.com>
+ssb   rsa3072/0E85956C52A2ECF7 2023-08-29 [E] [expires: 2025-08-28]
+----
+<1> Fingerprint
+
+* Delete a public key
+
+** Delete public keys
++
+[source,shell]
+----
+gpg2 --delete-keys your-public-key
+----
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --delete-keys XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+pub  rsa3072/412B0A1F5A0DBDE0 2023-08-29 alice <alice@example.com>
+
+Delete this key from the keyring? (y/N) y
+$ gpg2 --list-keys
+gpg: checking the trustdb
+gpg: no ultimately trusted keys found
+----
+
+** Delete secret keys
++
+[source,shell]
+----
+gpg2 --delete-secret-keys your-public-key
+----
++
+[source,console]
+----
+$ gpg2 --list-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+pub   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+sub   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --list-secret-keys
+/home/guest/.gnupg/pubring.kbx
+------------------------------
+sec   rsa3072 2023-08-29 [SC] [expires: 2025-08-28]
+      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+uid           [ultimate] alice <alice@example.com>
+ssb   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
+
+$ gpg2 --delete-secret-keys
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+gpg: Note: No key
+$ gpg2 --delete-secret-keys XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+sec  rsa3072/412B0A1F5A0DBDE0 2023-08-29 alice <alice@example.com>
+
+Delete this key from the keyring? (y/N) y
+This is a secret key! - really delete? (y/N) y
+$ gpg2 --list-secret-keys
+$
+----
+
+==== pass
+
+* https://www.passwordstore.org/[Pass: The Standard Unix Password Manager^]
+
+//^
+
+. Install Pass and gpg2
++
+[source,shell]
+----
+sudo apt-get install -y gnupg2 pass
+----
+
+. Generate a GPG Key
++
+[source,shell]
+----
+gpg2 --full-generate-key
+----
+
+. Show keys
++
+[source,shell]
+----
+gpg2 --list-secret-keys | grep -E -B 1 '^uid\W' | head -n1 | sed 's/^ *//g'
+----
+
+. Initialize the password store
++
+[source,shell]
+----
+pass init "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+----
