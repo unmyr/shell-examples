@@ -843,6 +843,47 @@ sudo iptables -L
 sudo iptables -L -v
 ----
 
+==== Google Chrome
+
+. Get the current stable version:
++
+[source,shell]
+----
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+----
+
+. Fix the package
++
+[source,shell]
+----
+sudo apt install --fix-broken -y
+----
+
+. Install Google Chrome for Linux
++
+[source,shell]
+----
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+----
+
+. Remove deb file
++
+[source,shell]
+----
+rm -f google-chrome-stable_current_amd64.deb
+----
+
+. To launch, enter:
++
+[source,shell]
+----
+google-chrome
+----
+
+.References
+* https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps[Run Linux GUI apps with WSL | Microsoft Learn^]
+
+
 === Security
 
 ==== gpg2
