@@ -2,4 +2,5 @@
 <<bash.adoc#,Bash>> {vbar}
 <<option-parsing-in-bash.adoc#,Option parsing>> {vbar}
 <<terminal_emulators.adoc#,Terminal>> {vbar}
-<<net-dns-nsd.adoc#,NSD>> +
+<<net-dns-nsd.adoc#,NSD>> {vbar}
+<<ubuntu.adoc#,Ubuntu>> +

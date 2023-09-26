@@ -1,0 +1,47 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+
+include::header.adoc[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+endif::[]
+
+== Ubuntu
+
+=== sudo
+
+==== Change visudo editor
+
+* How to change visudo editor from nano to vim?
++
+[source,shell]
+----
+sudo update-alternatives --config editor
+----
+
+=== Networking
+
+==== iptables
+
+* List rules
++
+[source,shell]
+----
+sudo iptables -S
+----
+
+* List all rules in the selected chain.
++
+[source,shell]
+----
+sudo iptables -L
+----
++
+[source,shell]
+----
+sudo iptables -L -v
+----
+
