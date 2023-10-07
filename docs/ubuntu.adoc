@@ -166,6 +166,12 @@ date '+%Y-%m-%d' --date="$(date +%Y-%m-01) -1 day"
 .References
 * https://hydrocul.github.io/wiki/commands/date.html[date コマンド | コマンドの使い方(Linux) | hydroculのメモ^]
 
+==== Adjust hardware clock
+
+[source,shell]
+----
+hwclock --hctosys
+----
 
 === Text Processing
 
@@ -883,6 +889,33 @@ google-chrome
 .References
 * https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps[Run Linux GUI apps with WSL | Microsoft Learn^]
 
+==== NIC
+
+[source,shell]
+----
+sudo netplan apply
+----
+
+* Add ip address on eth0
++
+[source,shell]
+----
+sudo ip address add 192.168.10.2/32 dev eth0
+----
+
+* Delete Interface
++
+[source,shell]
+----
+sudo ip addr delete 192.168.10.2/32 dev eth0
+----
+
+* Show network interface
++
+[source,shell]
+----
+ip addr show dev eth0
+----
 
 === Security
 
@@ -1152,4 +1185,14 @@ gpg2 --list-secret-keys | grep -E -B 1 '^uid\W' | head -n1 | sed 's/^ *//g'
 [source,shell]
 ----
 pass init "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+----
+
+
+=== Hardware
+
+* Network interface
++
+[source,shell]
+----
+sudo lshw -class network
 ----
