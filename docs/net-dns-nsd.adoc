@@ -342,3 +342,174 @@ $ nslookup 172.xxx.yyy.18 192.168.10.2
 ----
 sudo openssl x509 -in /etc/nsd/nsd_server.pem -text -noout
 ----
+
+
+== Unbound
+
+=== Install Unbound
+
+. Installing Unbound with the built-in package manager
++
+[source,shell]
+----
+sudo apt update
+sudo apt -y install unbound
+----
+
+=== Configure Unbound
+
+. Configure `unbound.conf`
++
+[source,console]
+----
+$ find /etc/unbound/ -name 'unbound.conf*' | xargs ls -1d --file-type
+/etc/unbound/unbound.conf
+/etc/unbound/unbound.conf.d/
+----
++
+[source,shell]
+----
+sudo cp -p /etc/unbound/unbound.conf /etc/unbound/unbound.conf.org
+----
+
+. Verify `unbound.conf`
++
+[source,shell]
+----
+unbound-checkconf -f /etc/unbound/unbound.conf
+----
+
+. Enable unbound service
++
+[source,shell]
+----
+sudo systemctl enable unbound.service
+----
+
+. Verify enabled
++
+[source,console]
+----
+$ sudo systemctl list-unit-files --type=service | grep unbound
+unbound-resolvconf.service                             enabled         enabled
+unbound.service                                        enabled         enabled
+----
+
+. Start/Restart/Reload Unbound
++
+--
+* Start Unbound
++
+[source,shell]
+----
+sudo systemctl start unbound
+----
+
+* Restart Unbound
++
+[source,shell]
+----
+sudo systemctl restart unbound
+----
+--
+
+. Verify NSD is listening
++
+[source,shell]
+----
+sudo lsof -nP -iTCP -sTCP:LISTEN
+----
++
+[source,shell]
+----
+sudo lsof -nP -iUDP
+----
+
+. Verify dns lookup
++
+--
+* Verify
++
+[source,console]
+----
+$ dig example.internal +adflag @192.168.10.2 -p 53
+
+; <<>> DiG 9.18.12-0ubuntu0.22.04.3-Ubuntu <<>> example.internal +adflag @192.168.10.2 -p 53
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 3587
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;example.internal.              IN      A
+
+;; ANSWER SECTION:
+example.internal.       86400   IN      A       172.xxx.yyy.18
+
+;; AUTHORITY SECTION:
+example.internal.       3600    IN      NS      example.internal.
+
+;; Query time: 0 msec
+;; SERVER: 192.168.10.2#53(192.168.10.2) (UDP)
+;; WHEN: Sat Oct 07 21:07:05 JST 2023
+;; MSG SIZE  rcvd: 75
+----
++
+[source,console]
+----
+$ dig example.internal +adflag @172.xxx.yyy.18 -p 53
+
+; <<>> DiG 9.18.12-0ubuntu0.22.04.3-Ubuntu <<>> example.internal +adflag @172.xxx.yyy.18 -p 53
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 43238
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;example.internal.              IN      A
+
+;; ANSWER SECTION:
+example.internal.       86116   IN      A       172.xxx.yyy.18
+
+;; Query time: 0 msec
+;; SERVER: 172.xxx.yyy.18#53(172.xxx.yyy.18) (UDP)
+;; WHEN: Sat Oct 07 21:14:08 JST 2023
+;; MSG SIZE  rcvd: 61
+----
++
+----
+$ dig www.google.com +adflag @172.xxx.yyy.18 -p 53
+
+; <<>> DiG 9.18.12-0ubuntu0.22.04.3-Ubuntu <<>> www.google.com +adflag @172.xxx.yyy.18 -p 53
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 64597
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;www.google.com.                        IN      A
+
+;; ANSWER SECTION:
+www.google.com.         0       IN      A       142.250.196.132
+
+;; Query time: 9 msec
+;; SERVER: 172.xxx.yyy.18#53(172.xxx.yyy.18) (UDP)
+;; WHEN: Sat Oct 07 21:17:30 JST 2023
+;; MSG SIZE  rcvd: 59
+----
+
+* Windows
++
+[source,powershell]
+----
+$wslIp = (wsl -- ip -o -4 -j addr s eth0 | ConvertFrom-Json | %{ $_.addr_info.local })
+Resolve-DnsName -Name example.internal -Server $wslIp
+----
+--
