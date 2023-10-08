@@ -1,0 +1,609 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+endif::[]
+
+== easy-rsa
+
+.References
+* https://github.com/OpenVPN/easy-rsa/blob/master/doc/EasyRSA-Readme.md
+
+=== Install easy-rsa
+
+.Install `easy-rsa`
++
+[source,shell]
+----
+sudo apt-get install -y easy-rsa
+----
+
+=== Add user
+
+. Add user
++
+[source,console]
+----
+$ sudo adduser ca
+Adding user `ca' ...
+Adding new group `ca' (1001) ...
+Adding new user `ca' (1001) with group `ca' ...
+Creating home directory `/home/ca' ...
+Copying files from `/etc/skel' ...
+New password:
+Retype new password:
+passwd: password updated successfully
+Changing the user information for ca
+Enter the new value, or press ENTER for the default
+        Full Name []:
+        Room Number []:
+        Work Phone []:
+        Home Phone []:
+        Other []:
+Is the information correct? [Y/n] y
+----
+
+. Add sudoers
++
+[source,shell]
+----
+sudo visudo
+----
+
+=== Configure CA
+
+. Configure CA
++
+[source,shell]
+----
+su - ca
+----
++
+[source,shell]
+----
+mkdir ~/easy-rsa
+----
++
+[source,shell]
+----
+ln -s /usr/share/easy-rsa/* ~/easy-rsa/
+chmod 700 ~/easy-rsa
+----
++
+[source,shell]
+----
+cd ~/easy-rsa
+----
++
+[source,shell]
+----
+(cd ~/easy-rsa/ && ./easyrsa init-pki)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa/ && ./easyrsa init-pki)
+
+init-pki complete; you may now create a CA or requests.
+Your newly created PKI dir is: /home/ca/easy-rsa/pki
+----
+
+. Set vars
++
+.~/easy-rsa/vars
+----
+set_var EASYRSA_REQ_COUNTRY    "JP"
+set_var EASYRSA_REQ_PROVINCE   "Tokyo"
+set_var EASYRSA_REQ_CITY       "Tokyo"
+set_var EASYRSA_REQ_ORG        "PrivateCA"
+set_var EASYRSA_REQ_EMAIL      "rpi4@internal"
+set_var EASYRSA_REQ_OU         "Community"
+set_var EASYRSA_ALGO           "ec"
+set_var EASYRSA_DIGEST         "sha512"
+----
+
+. Building the CA
++
+[source,shell]
+----
+(cd ~/easy-rsa && ./easyrsa build-ca)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa && ./easyrsa build-ca)
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+Enter New CA Key Passphrase:
+Re-Enter New CA Key Passphrase:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Common Name (eg: your user, host, or server name) [Easy-RSA CA]:
+
+CA creation complete and you may now import and sign cert requests.
+Your new CA certificate file for publishing is at:
+/home/ca/easy-rsa/pki/ca.crt
+----
+
+. Install CA certificate
++
+[source,shell]
+----
+sudo cp -p ~/easy-rsa/pki/ca.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
+----
++
+[source,console]
+----
+$ ls -l /etc/ssl/certs/ | grep ca.pem
+lrwxrwxrwx 1 root root      6 Oct  8 20:39 b93a0109.0 -> ca.pem
+lrwxrwxrwx 1 root root     39 Oct  8 20:39 ca.pem -> /usr/local/share/ca-certificates/ca.crt
+----
+
+. Copy
++
+[source,shell]
+----
+sudo ln /usr/local/share/ca-certificates/ca.crt .
+sudo chown $(id -u -n):$(id -u -n) ca.crt
+----
+
+. Import CA certificate to Google Chrome
+
+=== Generate private key
+
+. Move to work directory
++
+[source,shell]
+----
+mkdir ~/practice-csr && cd ~/practice-csr
+----
+
+. Generate private key
++
+[source,shell]
+----
+openssl genrsa -out example-server.key
+----
+
+. Show private key
++
+[source,shell]
+----
+openssl rsa -text < example-server.key
+----
+
+=== Create CSR(Certificate Signing Request)
+
+==== Using CN
+
+. Create the CSR(Certificate Signing Request)
++
+--
+* non-interactive
++
+[source,shell]
+----
+openssl req -new -key example-server.key -out example-server.req -subj /C=JP/ST=Tokyo/L=Tokyo/O=alice/OU=Community/CN=example.internal
+----
+
+* interactive inputs
++
+[source,shell]
+----
+openssl req -new -key example-server.key -out example-server.req
+----
++
+[source,console]
+----
+$ openssl req -new -key example-server.key -out example-server.req
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:JP
+State or Province Name (full name) [Some-State]:Tokyo
+Locality Name (eg, city) []:Tokyo
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:alice
+Organizational Unit Name (eg, section) []:Community
+Common Name (e.g. server FQDN or YOUR name) []:example.internal
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+----
+--
+
+. Show CSR
++
+[source,shell]
+----
+openssl req -in example-server.req -noout -subject
+----
++
+[source,console]
+----
+$ openssl req -in example-server.req -noout -subject
+subject=C = JP, ST = Tokyo, L = Tokyo, O = alice, OU = Community, CN = example.internal
+----
+
+. Copy
++
+[source,shell]
+----
+sudo cp -p ./example-server.req /tmp/
+----
+
+. Importing requests to the CA
++
+[source,shell]
+----
+(cd ~/easy-rsa/ && ./easyrsa import-req /tmp/example-server.req example-server)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa/ && ./easyrsa import-req /tmp/example-server.req example-server)
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+The request has been successfully imported with a short name of: example-server
+You may now use this name to perform signing operations on this request.
+----
+
+. Signing a request +
+Review the request and enter "yes" if there is no problem with the request.
++
+[source,shell]
+----
+(cd ~/easy-rsa/ && ./easyrsa sign-req server example-server)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa/ && ./easyrsa sign-req server example-server)
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+
+You are about to sign the following certificate.
+Please check over the details shown below for accuracy. Note that this request
+has not been cryptographically verified. Please be sure it came from a trusted
+source or that you have verified the request checksum with the sender.
+
+Request subject, to be signed as a server certificate for 825 days:
+
+subject=
+    countryName               = JP
+    stateOrProvinceName       = Tokyo
+    localityName              = Tokyo
+    organizationName          = alice
+    organizationalUnitName    = Community
+    commonName                = example.internal
+
+
+Type the word 'yes' to continue, or any other input to abort.
+  Confirm request details: yes
+Using configuration from /home/ca/easy-rsa/pki/easy-rsa-NNNNN.XXXXXX/tmp.XXXXXX
+Enter pass phrase for /home/ca/easy-rsa/pki/private/ca.key:
+40E703A3BF7F0000:error:0700006C:configuration file routines:NCONF_get_string:no value:../crypto/conf/conf_lib.c:315:group=<NULL> name=unique_subject
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'JP'
+stateOrProvinceName   :ASN.1 12:'Tokyo'
+localityName          :ASN.1 12:'Tokyo'
+organizationName      :ASN.1 12:'alice'
+organizationalUnitName:ASN.1 12:'Community'
+commonName            :ASN.1 12:'example.internal'
+Certificate is to be certified until Jan 10 11:58:29 2026 GMT (825 days)
+
+Write out database with 1 new entries
+Data Base Updated
+
+Certificate created at: /home/ca/easy-rsa/pki/issued/example-server.crt
+----
+
+. Show certificate
++
+[source,shell]
+----
+openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server.crt 
+----
++
+[source,console]
+----
+$ openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server.crt
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = Easy-RSA CA
+        Validity
+            Not Before: Oct  8 11:58:29 2023 GMT
+            Not After : Jan 10 11:58:29 2026 GMT
+        Subject: C = JP, ST = Tokyo, L = Tokyo, O = alice, OU = Community, CN = example.internal
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+                    ...snip...
+                    00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+                    00:00
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints:
+                CA:FALSE
+            X509v3 Subject Key Identifier:
+                XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX
+            X509v3 Authority Key Identifier:
+                keyid:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY
+                DirName:/CN=Easy-RSA CA
+                serial:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ
+            X509v3 Extended Key Usage:
+                TLS Web Server Authentication
+            X509v3 Key Usage:
+                Digital Signature, Key Encipherment
+            X509v3 Subject Alternative Name:
+                DNS:example.internal
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+        ...snip...
+        00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+        00:00:00:00
+----
+
+. Copy server certificate
++
+[source,shell]
+----
+sudo ln ~ca/easy-rsa/pki/issued/example-server.crt .
+sudo chown $(id -u -n):$(id -g -n) example-server.crt
+----
+
+==== Using SAN
+
+. Create the CSR(Certificate Signing Request)
++
+[source,shell]
+----
+openssl req -new \
+-key example-server.key \
+-out example-server-san.req \
+-subj /C=JP/ST=Tokyo/L=Tokyo/O=alice/OU=Community/CN=example.internal \
+-extensions v3_req \
+-addext 'subjectAltName = DNS:example.internal,DNS:test.example.internal,IP:172.xxx.yyy.18'
+----
+
+. Show CSR
++
+[source,shell]
+----
+openssl req -in example-server-san.req -noout -subject
+----
+
+. Copy
++
+[source,shell]
+----
+sudo cp -p ./example-server-san.req /tmp/
+----
+
+. Importing requests to the CA
++
+[source,shell]
+----
+(cd ~/easy-rsa/ && ./easyrsa import-req /tmp/example-server-san.req example-server-san)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa/ && ./easyrsa import-req /tmp/example-server-san.req example-server-san)
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+The request has been successfully imported with a short name of: example-server-san
+You may now use this name to perform signing operations on this request.
+----
+
+. Signing a request +
+Review the request and enter "yes" if there is no problem with the request.
++
+[source,shell]
+----
+(cd ~/easy-rsa/ && ./easyrsa sign-req server example-server-san)
+----
++
+[source,console]
+----
+$ (cd ~/easy-rsa/ && ./easyrsa sign-req server example-server-san)
+Using SSL: openssl OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+
+You are about to sign the following certificate.
+Please check over the details shown below for accuracy. Note that this request
+has not been cryptographically verified. Please be sure it came from a trusted
+source or that you have verified the request checksum with the sender.
+
+Request subject, to be signed as a server certificate for 825 days:
+
+subject=
+    countryName               = JP
+    stateOrProvinceName       = Tokyo
+    localityName              = Tokyo
+    organizationName          = alice
+    organizationalUnitName    = Community
+    commonName                = example.internal
+
+X509v3 Subject Alternative Name:
+    DNS:example.internal,DNS:test.example.internal,IP:172.xxx.yyy.18
+
+
+Type the word 'yes' to continue, or any other input to abort.
+  Confirm request details: yes
+Using configuration from /home/ca/easy-rsa/pki/easy-rsa-NNNNN.XXXXXX/tmp.XXXXXX
+Enter pass phrase for /home/ca/easy-rsa/pki/private/ca.key:
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'JP'
+stateOrProvinceName   :ASN.1 12:'Tokyo'
+localityName          :ASN.1 12:'Tokyo'
+organizationName      :ASN.1 12:'alice'
+organizationalUnitName:ASN.1 12:'Community'
+commonName            :ASN.1 12:'example.internal'
+Certificate is to be certified until Jan 10 15:42:42 2026 GMT (825 days)
+
+Write out database with 1 new entries
+Data Base Updated
+
+Certificate created at: /home/ca/easy-rsa/pki/issued/example-server-san.crt
+----
+
+. Show certificate
++
+[source,shell]
+----
+openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server-san.crt
+----
++
+[source,console,subs="verbatim,quotes"]
+----
+$ openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server-san.crt
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = Easy-RSA CA
+        Validity
+            Not Before: Oct  8 15:42:42 2023 GMT
+            Not After : Jan 10 15:42:42 2026 GMT
+        Subject: C = JP, ST = Tokyo, L = Tokyo, O = alice, OU = Community, CN = example.internal
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+                    ...snip...
+                    00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+                    00:00
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints:
+                CA:FALSE
+            X509v3 Subject Key Identifier:
+                XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX
+            X509v3 Authority Key Identifier:
+                keyid:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY:YY
+                DirName:/CN=Easy-RSA CA
+                serial:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ:ZZ
+            X509v3 Extended Key Usage:
+                TLS Web Server Authentication
+            X509v3 Key Usage:
+                Digital Signature, Key Encipherment
+            **X509v3 Subject Alternative Name:**
+                **DNS:example.internal, DNS:test.example.internal, IP Address:172.xxx.yyy.18**
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+        ...snip...
+        00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:
+        00:00:00:00
+----
+
+. Copy server certificate
++
+[source,shell]
+----
+sudo ln ~ca/easy-rsa/pki/issued/example-server-san.crt .
+sudo chown $(id -u -n):$(id -g -n) example-server-san.crt
+----
+
+=== Examples
+
+. Create example server
++
+[source,shell]
+----
+npm install -g pnpm
+pnpm init
+----
++
+[source,javascript]
+----
+const https = require("https");
+const fs = require("fs");
+
+const serverKeyPath = "example-server.key";
+// const serverCrtPath = "example-server.crt";
+const serverCrtPath = "example-server-san.crt";
+const httpsPort = 8443;
+
+https.createServer({
+    key: fs.readFileSync(serverKeyPath),
+    cert: fs.readFileSync(serverCrtPath),
+  }, (req, res) => res.end("hello, world")
+).listen(httpsPort, () => {
+   console.log(`Listening HTTPS on ${httpsPort}...`);
+})
+----
+
+. Run server
++
+[source,shell]
+----
+node index.js
+----
+
+. Test cert status
++
+[source,shell]
+----
+curl -s -v --tls-max 1.3 --cert-status https://test.example.internal:8443/
+curl -s -v --tls-max 1.3 --cert-status https://example.internal:8443/
+----
+
+. Test cert status
++
+[source,shell]
+----
+curl -s --tls-max 1.3 -w "\n" https://test.example.internal:8443/
+curl -s --tls-max 1.3 -w "\n" https://example.internal:8443/
+----
++
+[source,console]
+----
+$ curl -s --tls-max 1.3 -w "\n" https://test.example.internal:8443/
+hello, world
+$ curl -s --tls-max 1.0 -w "\n" https://example.internal:8443/
+
+$ curl -s --tls-max 1.1 -w "\n" https://example.internal:8443/
+
+$ curl -s --tls-max 1.2 -w "\n" https://example.internal:8443/
+hello, world
+$ curl -s --tls-max 1.3 -w "\n" https://example.internal:8443/
+hello, world
+----
+
+. Test Google Chrome
++
+image::net-ca-easy-rsa-google-chrome-test-success.png[]

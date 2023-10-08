@@ -1,6 +1,8 @@
 {
     "files.eol": "\n",
     "cSpell.words": [
+        "addext",
+        "adduser",
         "adflag",
         "adoc",
         "ALPN",
@@ -14,6 +16,7 @@
         "dircolors",
         "dpkg",
         "drwxrwxr",
+        "easyrsa",
         "EDNS",
         "Elgamal",
         "esac",
@@ -36,6 +39,7 @@
         "keysize",
         "leveloffset",
         "logfile",
+        "lrwxrwxrwx",
         "lshw",
         "mktemp",
         "mmin",
@@ -62,6 +66,7 @@
         "realpath",
         "resolvconf",
         "sigalg",
+        "skel",
         "toclevels",
         "trustdb",
         "UNCONN",

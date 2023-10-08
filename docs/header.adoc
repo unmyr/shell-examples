@@ -1,5 +1,6 @@
 <<index.adoc#,Index>> {vbar}
 <<option-parsing-in-bash.adoc#,Option parsing>> {vbar}
 <<terminal_emulators.adoc#,Terminal>> {vbar}
-<<net-dns-nsd.adoc#,NSD>> {vbar}
+<<net-dns-nsd.adoc#,NSD/Unbound>> {vbar}
+<<net-ca-easy-rsa.adoc#,easy-rsa>> {vbar}
 <<ubuntu.adoc#,Ubuntu>> +
