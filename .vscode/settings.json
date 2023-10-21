@@ -69,6 +69,7 @@
         "readlines",
         "realpath",
         "resolvconf",
+        "resolvectl",
         "sigalg",
         "skel",
         "toclevels",

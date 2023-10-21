@@ -929,6 +929,20 @@ sudo ip addr delete 192.168.10.2/32 dev eth0
 ip addr show dev eth0
 ----
 
+==== DNS
+
+* Verify the DNS Nameservers
++
+[source,shell]
+----
+resolvectl dns
+----
++
+[source,shell]
+----
+resolvectl status
+----
+
 === Security
 
 ==== gpg2
