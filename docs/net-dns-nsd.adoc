@@ -659,7 +659,7 @@ sudo systemctl restart unbound
 ----
 
 * Verify `unbound`:
-+vi 
++
 [source,shell]
 ----
 sudo systemctl status unbound

@@ -322,7 +322,7 @@ Certificate created at: /home/ca/easy-rsa/pki/issued/example-server.crt
 +
 [source,shell]
 ----
-openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server.crt 
+openssl x509 -text -noout -in ~/easy-rsa/pki/issued/example-server.crt
 ----
 +
 [source,console]

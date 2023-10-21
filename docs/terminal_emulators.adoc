@@ -20,12 +20,12 @@ endif::[]
 | 30m  | Black   ^|  x   ^|   o
 | 31m  | Red     ^|      ^|
 | 32m  | Green   ^|      ^|
-| 33m  | Yellow  ^|  o   ^|   x 
-| 34m  | Blue    ^|  x   ^|   o 
+| 33m  | Yellow  ^|  o   ^|   x
+| 34m  | Blue    ^|  x   ^|   o
 | 35m  | Purple  ^|      ^|
 | 37m  | White   ^|      ^|
 
-| 1;30m | Bright Black   ^| ^| 
+| 1;30m | Bright Black   ^| ^|
 | 1;31m | Bright Red     ^| ^|
 | 1;32m | Bright Green   ^| ^|
 | 1;33m | Bright Yellow  ^| ^|
@@ -78,7 +78,7 @@ Change dark blue color in ls output in linux.
 eval `dircolors | sed -e 's/di=01;34/di=00;44/'`
 ----
 
-image::terminal_emulators-ls-colors.png[] 
+image::terminal_emulators-ls-colors.png[]
 
 === Grep
 

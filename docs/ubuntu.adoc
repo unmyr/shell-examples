@@ -603,7 +603,7 @@ LISTEN      0            4096                     0.0.0.0:30000                 
 LISTEN      0            4096               127.0.0.53%lo:53                     0.0.0.0:*
 ----
 
-** Check listening ports with `lsof` 
+** Check listening ports with `lsof`
 +
 [source,console]
 ----
@@ -1072,7 +1072,7 @@ ssb   rsa3072 2023-08-29 [E] [expires: 2025-08-28]
 <1> Fingerprint
 
 ** `gpg2 --list-secret-keys --keyid-format=short` +
-The 'short' keyid is the low 32 bits, or last 8 hex digits, of the fingerprint and thus is 52A2ECF7. 
+The 'short' keyid is the low 32 bits, or last 8 hex digits, of the fingerprint and thus is 52A2ECF7.
 +
 [source,console]
 ----
