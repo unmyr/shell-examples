@@ -61,6 +61,39 @@ sudo cp -p /etc/nsd/nsd.conf /etc/nsd/nsd.conf.org
 ----
 sudo ip addr add 192.168.10.2/32 dev eth0
 ----
+
+* Change permanently
+
+** Example of netplan settings
++
+[source,yaml]
+./etc/netplan/01-eth0.network
+----
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses:
+        - 192.168.10.2/32
+      gateway4: 172.30.208.1
+      nameservers:
+          addresses: [172.30.208.1, 8.8.8.8]
+----
+
+** Run `sudo netplan apply`
++
+[source,shell]
+----
+sudo netplan apply
+----
++
+[source,shell]
+.Run `sudo netplan apply` with a `--debug` option  to print debug output.
+----
+sudo netplan --debug apply
+----
 --
 
 . Verify IP added:
@@ -390,6 +423,22 @@ sudo cp -p /etc/unbound/unbound.conf /etc/unbound/unbound.conf.org
 unbound-checkconf -f /etc/unbound/unbound.conf
 ----
 
+. Configure root.key
++
+[source,shell]
+----
+sudo -u unbound unbound-anchor -a "/var/lib/unbound/root.key" || logger "Please check root.key"
+sudo chown unbound:unbound "/var/lib/unbound/root.key"
+----
+
+* Verify `root.key`
++
+[source,shell]
+----
+unbound-anchor -l
+ls -l /var/lib/unbound/root.key
+----
+
 . Enable unbound service
 +
 [source,shell]
@@ -532,6 +581,7 @@ Resolve-DnsName -Name example.internal -Server $wslIp
 This can occur if NSD is not started.
 
 * Symptom
+
 ** NSD is not running
 +
 ----
@@ -541,28 +591,7 @@ unbound 240 unbound    3u  IPv4  22618      0t0  UDP 127.0.0.1:53
 unbound 240 unbound    5u  IPv4  22620      0t0  UDP 172.xxx.yyy.18:53
 ----
 
-* dig: status: REFUSED
-+
-[source,console]
-----
-$ dig +norec test.example.internal A
-
-; <<>> DiG 9.18.12-0ubuntu0.22.04.3-Ubuntu <<>> +norec test.example.internal A
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: REFUSED, id: 32386
-;; flags: qr ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
-
-;; QUESTION SECTION:
-;test.example.internal.         IN      A
-
-;; Query time: 0 msec
-;; SERVER: 172.xxx.yyy.18#53(172.xxx.yyy.18) (UDP)
-;; WHEN: Sat Oct 21 23:46:26 JST 2023
-;; MSG SIZE  rcvd: 39
-----
-
-* /var/log/syslog
+** /var/log/syslog
 +
 [source,plaintext]
 ----
@@ -600,13 +629,43 @@ rm /etc/nsd/nsd_server.*
 sudo nsd-control-setup
 ----
 
-* Verify fixed:
+* Restart NSD
 +
+[source,shell]
+----
+sudo systemctl restart nsd
+----
+
+* Verify nsd service fixed:
++
+[source,shell]
 ----
 ls -l /etc/nsd/nsd_server.*
 sudo lsof -nP -iUDP
 sudo systemctl status nsd
+dig +norec test.example.internal @192.168.10.2 A
 ----
+
+* Restart `unbound`
++
+[source,shell]
+----
+sudo -u unbound unbound-anchor -a "/var/lib/unbound/root.key"
+chown unbound:unbound "/var/lib/unbound/root.key"
+ls -l /var/lib/unbound/root.key
+sudo systemctl restart unbound
+----
+
+* Verify `unbound`:
++vi 
+[source,shell]
+----
+sudo systemctl status unbound
+dig example.internal +adflag @172.xxx.yyy.18 -p 53
+dig test.example.internal +adflag @172.xxx.yyy.18 -p 53 A
+dig www.google.com @172.xxx.yyy.18 A
+----
+
 --
 +
 [source,console]
@@ -634,3 +693,102 @@ nsd:\x20x 51835     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
 nsd:\x20m 51836     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
 nsd:\x20s 51837     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
 ----
+
+=== unbound not working on WSL2
+
+* Symptom
+
+** dig failed
++
+[source,shell]
+----
+dig -x 172.xxx.yyy.18 -p 53
+----
+
+** syslog
++
+[source,plaintext]
+----
+Oct 22 02:14:42 ubuntu22-wsl unbound: [83906:0] info: generate keytag query _ta-4f66. NULL IN
+Oct 22 02:14:47 ubuntu22-wsl unbound: [83906:0] info: failed to prime trust anchor -- could not fetch DNSKEY rrset . DNSKEY IN
+...snip...
+Oct 22 02:14:49 ubuntu22-wsl systemd[1]: Condition check resulted in Network Time Synchronization being skipped.
+----
+
+** `systemd-timesyncd` is inactive
++
+[source,shell]
+----
+systemctl status systemd-timesyncd
+----
++
+[source,console]
+----
+$ systemctl status systemd-timesyncd
+○ systemd-timesyncd.service - Network Time Synchronization
+     Loaded: loaded (/lib/systemd/system/systemd-timesyncd.service; enabled; vendor preset: enabled)
+     Active: inactive (dead)
+  Condition: start condition failed at Sat 2023-10-21 21:27:35 JST; 4h 36min ago
+       Docs: man:systemd-timesyncd.service(8)
+
+Oct 21 21:27:35 ubuntu22-wsl systemd[1]: Condition check resulted in Network Time Synchronization being skipped.
+----
+
+* Cause: `systemd-timesyncd` is inactive on WSL
+
+
+* Solution: +
+Change `/lib/systemd/system/systemd-timesyncd.service`
++
+--
+* Backup
+[source,shell]
+----
+sudo cp -i -p /lib/systemd/system/systemd-timesyncd.service /lib/systemd/system/systemd-timesyncd.service.org
+----
+
+* Edit `/etc/systemd/timesyncd.conf` +
+See: https://choichoitto.amebaownd.com/pages/540301/blog[【備忘録】WSL2 上の Ubuntu で systemd-timesyncd が動作してなかったのをなんとかしてみた件 | BLOG | つれづれなるままに^]
+
+
+** Edit `/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service`
++
+[source,shell]
+.Replace the ConditionVirtualization setting with sed
+----
+sudo sed -i 's/^\(ConditionVirtualization\)=.*/\1=/g' /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+----
++
+[source,shell]
+.Edit the ConditionVirtualization setting with vi
+----
+sudo vi /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+----
+
+** Diff
++
+[source,diff]
+.diff -0 -cw /lib/systemd/system/systemd-timesyncd.service.org /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+----
+*** 14 ****
+! ConditionVirtualization=!container
+--- 14 ----
+! ConditionVirtualization=
+----
+
+* Restart WSL on Windows Host
++
+[source,powershell]
+----
+wsl -l --verbose
+wsl.exe -t Ubuntu-22.04
+wsl -l --verbose
+----
+
+* Verify `systemd-timesyncd` is loaded
++
+[source,shell]
+----
+sudo systemctl status systemd-timesyncd
+----
+--
