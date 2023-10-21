@@ -9,7 +9,6 @@ include $(DOC_ROOT)/asciidoc.mk
 
 HTML_LIST=\
 mkdir_and_copy \
-$(DIST_DIR)/bash.html \
 $(DIST_DIR)/net-ca-easy-rsa.html \
 $(DIST_DIR)/net-dns-nsd.html \
 $(DIST_DIR)/option-parsing-in-bash.html \
