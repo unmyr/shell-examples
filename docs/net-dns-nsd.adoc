@@ -542,6 +542,7 @@ example.internal.       86116   IN      A       172.xxx.yyy.18
 ;; MSG SIZE  rcvd: 61
 ----
 +
+[source,console]
 ----
 $ dig www.google.com +adflag @172.xxx.yyy.18 -p 53
 
@@ -574,9 +575,9 @@ Resolve-DnsName -Name example.internal -Server $wslIp
 ----
 --
 
-=== Troubleshooting
+== Troubleshooting
 
-==== status: REFUSED
+=== NSD is not running
 
 This can occur if NSD is not started.
 
@@ -584,6 +585,7 @@ This can occur if NSD is not started.
 
 ** NSD is not running
 +
+[source,console]
 ----
 $ sudo lsof -nP -iUDP
 COMMAND PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
