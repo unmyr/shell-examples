@@ -46,9 +46,20 @@ $ find /etc/nsd/ -name 'nsd.conf*' | xargs ls -1d --file-type
 
 . Add IP
 +
+--
+** Add an IP temporarily:
++
 [source,shell]
 ----
-ip addr add 192.168.10.2/32 dev eth0
+sudo ip addr add 192.168.10.2/32 dev eth0
+----
+--
+
+. Verify IP added:
++
+[source,shell]
+----
+ip addr show dev eth0
 ----
 
 . Backup `nsd.conf`.
@@ -513,3 +524,113 @@ $wslIp = (wsl -- ip -o -4 -j addr s eth0 | ConvertFrom-Json | %{ $_.addr_info.lo
 Resolve-DnsName -Name example.internal -Server $wslIp
 ----
 --
+
+=== Troubleshooting
+
+==== status: REFUSED
+
+This can occur if NSD is not started.
+
+* Symptom
+** NSD is not running
++
+----
+$ sudo lsof -nP -iUDP
+COMMAND PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+unbound 240 unbound    3u  IPv4  22618      0t0  UDP 127.0.0.1:53
+unbound 240 unbound    5u  IPv4  22620      0t0  UDP 172.xxx.yyy.18:53
+----
+
+* dig: status: REFUSED
++
+[source,console]
+----
+$ dig +norec test.example.internal A
+
+; <<>> DiG 9.18.12-0ubuntu0.22.04.3-Ubuntu <<>> +norec test.example.internal A
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: REFUSED, id: 32386
+;; flags: qr ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;test.example.internal.         IN      A
+
+;; Query time: 0 msec
+;; SERVER: 172.xxx.yyy.18#53(172.xxx.yyy.18) (UDP)
+;; WHEN: Sat Oct 21 23:46:26 JST 2023
+;; MSG SIZE  rcvd: 39
+----
+
+* /var/log/syslog
++
+[source,plaintext]
+----
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: nsd starting (NSD 4.3.9)
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: notice: nsd starting (NSD 4.3.9)
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: error for cert file: /etc/nsd/nsd_server.pem
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: error for cert file: /etc/nsd/nsd_server.pem
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: error in SSL_CTX use_certificate_chain_file crypto error:8000000D:system library::Permission denied
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: and additionally crypto error:10080002:BIO routines::system lib
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: and additionally crypto error:0A080002:SSL routines::system lib
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: could not setup remote control TLS context
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: error in SSL_CTX use_certificate_chain_file crypto error:8000000D:system library::Permission denied
+Oct 21 23:56:10 ubuntu22-wsl nsd[39379]: [2023-10-21 23:56:10.352] nsd[39379]: error: could not perform remote control setup
+----
+
+* Workarounds
++
+--
+* Delete the existing certificate files, if it exists:
++
+[source,shell]
+----
+ls -l /etc/nsd/nsd_server.*
+----
++
+[source,shell]
+----
+rm /etc/nsd/nsd_server.*
+----
+
+* Regenerate cert files
++
+[source,shell]
+----
+sudo nsd-control-setup
+----
+
+* Verify fixed:
++
+----
+ls -l /etc/nsd/nsd_server.*
+sudo lsof -nP -iUDP
+sudo systemctl status nsd
+----
+--
++
+[source,console]
+----
+$ ls -l /etc/nsd/nsd_server.*
+-rw------- 2 alice alice 2484 Sep 17 23:48 /etc/nsd/nsd_server.key
+-rw-r----- 2 alice alice 1322 Sep 17 23:48 /etc/nsd/nsd_server.pem
+$ rm /etc/nsd/nsd_server.*
+rm: cannot remove '/etc/nsd/nsd_server.key': Permission denied
+rm: cannot remove '/etc/nsd/nsd_server.pem': Permission denied
+$ sudo rm /etc/nsd/nsd_server.*
+$ sudo nsd-control-setup
+setup in directory /etc/nsd
+removing artifacts
+Setup success. Certificates created.
+$ ls -l /etc/nsd/nsd_server.*
+-rw------- 1 root root 2484 Oct 22 00:29 /etc/nsd/nsd_server.key
+-rw-r----- 1 root root 1322 Oct 22 00:29 /etc/nsd/nsd_server.pem
+$ sudo systemctl start nsd
+$ sudo lsof -nP -iUDP
+COMMAND     PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+unbound     240 unbound    3u  IPv4  22618      0t0  UDP 127.0.0.1:53
+unbound     240 unbound    5u  IPv4  22620      0t0  UDP 172.xxx.yyy.18:53
+nsd:\x20x 51835     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
+nsd:\x20m 51836     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
+nsd:\x20s 51837     nsd    4u  IPv4 803730      0t0  UDP 192.168.10.2:53
+----
