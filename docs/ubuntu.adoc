@@ -828,6 +828,18 @@ read R BLOCK
 root@ubuntu:/#
 ----
 
+* Verify the expiration date of a PEM-encoded SSL certificate
++
+[source,shell]
+----
+openssl x509 -checkend 86400 -noout -in example.pem
+----
++
+[source,shell]
+----
+openssl x509 -enddate -noout -in example.pem
+----
+
 ==== iptables
 
 * List rules

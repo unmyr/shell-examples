@@ -44,10 +44,18 @@ $ find /etc/nsd/ -name 'nsd.conf*' | xargs ls -1d --file-type
 /etc/nsd/nsd.conf.d/
 ----
 
+. Backup `nsd.conf`.
++
+[source,shell]
+----
+sudo cp -p /etc/nsd/nsd.conf /etc/nsd/nsd.conf.org
+----
+--
+
 . Add IP
 +
 --
-** Add an IP temporarily:
+* Add an IP temporarily:
 +
 [source,shell]
 ----
@@ -61,14 +69,6 @@ sudo ip addr add 192.168.10.2/32 dev eth0
 ----
 ip addr show dev eth0
 ----
-
-. Backup `nsd.conf`.
-+
-[source,shell]
-----
-sudo cp -p /etc/nsd/nsd.conf /etc/nsd/nsd.conf.org
-----
---
 
 . Edit `/etc/nsd/nsd.conf`
 +
