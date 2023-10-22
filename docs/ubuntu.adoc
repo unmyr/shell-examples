@@ -166,11 +166,74 @@ date '+%Y-%m-%d' --date="$(date +%Y-%m-01) -1 day"
 .References
 * https://hydrocul.github.io/wiki/commands/date.html[date コマンド | コマンドの使い方(Linux) | hydroculのメモ^]
 
-==== Adjust hardware clock
+==== NTP
 
+* Show status
++
 [source,shell]
 ----
-hwclock --hctosys
+sudo systemctl status systemd-timesyncd
+----
+
+.Edit settings
+. list files
++
+[source,shell]
+----
+ls -ld /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service /lib/systemd/system/systemd-timesyncd.service*
+----
+
+. Edit `systemd-timesyncd.service`
++
+[source,shell]
+----
+sudo vi /lib/systemd/system/systemd-timesyncd.service
+sudo sed -i 's/^\(ConditionVirtualization\)=.*/\1=/g' /lib/systemd/system/systemd-timesyncd.service
+----
++
+[source,diff]
+.diff -0 -cw /lib/systemd/system/systemd-timesyncd.service.org /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+----
+*** 14 ****
+! ConditionVirtualization=!container
+--- 14 ----
+! ConditionVirtualization=
+----
+
+. Reload
++
+[source,shell]
+----
+sudo systemctl daemon-reload
+sudo systemctl restart systemd-timesyncd
+----
+
+. Verify status
++
+[source,shell]
+----
+sudo systemctl status systemd-timesyncd
+----
+
+.References
+* https://www.mfeed.ad.jp/ntp/overview.html[時刻情報提供サービス for Public | INTERNET MULTIFEED CO.^]
+* https://www.ntppool.org/ja/[pool.ntp.org: the internet cluster of ntp servers^] +
+  pool.ntp.org は、タイムサーバの大きな仮想クラスタであり、何百万ものクライアントへ 使いやすく安定した NTP サービスを提供するプロジェクトです。
+
+==== Adjust hardware clock
+
+* Show RTC Time
++
+[source,shell]
+----
+timedatectl
+----
+
+* Adjust time
++
+[source,shell]
+----
+sudo hwclock --hctosys
 ----
 
 === Text Processing
