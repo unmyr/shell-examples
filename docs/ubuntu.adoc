@@ -589,6 +589,35 @@ ip --family inet6 address show dev eth0
 ip -6 a show dev eth0
 ----
 
+* Display route
++
+[source,shell]
+.IPv4
+----
+ip -4 route show dev eth0
+----
+
++
+[source,shell]
+.IPv6
+----
+ip -6 route show dev eth0
+----
+
+* Add IP
++
+[source,shell]
+.IPv4
+----
+sudo ip addr add 192.168.10.2/32 dev eth0
+----
++
+[source,shell]
+.IPv6
+----
+sudo ip addr add 192.168.10.2/32 dev eth0
+----
+
 ==== Get IP Address
 
 * Using `awk`
