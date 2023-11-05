@@ -18,7 +18,6 @@ endif::[]
 === Install easy-rsa
 
 .Install `easy-rsa`
-+
 [source,shell]
 ----
 sudo apt-get install -y easy-rsa
@@ -606,4 +605,4 @@ hello, world
 
 . Test Google Chrome
 +
-image::net-ca-easy-rsa-google-chrome-test-success.png[]
+image::net-pki-easy-rsa-google-chrome-test-success.png[]
