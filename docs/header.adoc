@@ -2,5 +2,5 @@
 <<option-parsing-in-bash.adoc#,Option parsing>> {vbar}
 <<terminal_emulators.adoc#,Terminal>> {vbar}
 <<net-dns-nsd.adoc#,NSD/Unbound>> {vbar}
-<<net-pki-easy-rsa.adoc#,easy-rsa>> {vbar}
+PKI(<<net-pki-easy-rsa.adoc#,easy-rsa>>,<<net-pki-cfssl.adoc#,cfssl>>) {vbar}
 <<ubuntu.adoc#,Ubuntu>> +

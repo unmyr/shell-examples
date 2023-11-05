@@ -1,0 +1,147 @@
+ifndef::leveloffset[]
+:toc: left
+:toclevels: 3
+:icons: font
+
+include::header.adoc[]
+
+ifndef::imagesdir[]
+:imagesdir: images
+endif::[]
+endif::[]
+
+== cfssl
+
+* https://github.com/cloudflare/cfssl[cloudflare/cfssl: CFSSL: Cloudflare's PKI and TLS toolkit^]
+
+=== Install cfssl
+
+. Search package name
++
+[source,console]
+----
+$ apt-cache search cfssl
+golang-cfssl - CloudFlare's PKI and TLS toolkit
+golang-github-cloudflare-cfssl-dev - CloudFlare's PKI and TLS toolkit
+----
+
+. Install `cfssl`
++
+[source,shell]
+----
+sudo apt-get install -y golang-cfssl
+----
+
+=== Examples
+
+[source,shell]
+----
+#!/bin/bash
+usage() {
+    MESSAGE=$1
+    test -n "$MESSAGE" && echo "$MESSAGE" 1>&2
+    cat 1>&2 <<EOF
+usage: $0 {create|show}
+EOF
+}
+
+SCRIPT_PATH_IN=${BASH_SOURCE:-$0}
+# SCRIPT_NAME=$(basename ${SCRIPT_PATH_IN} .sh)
+SCRIPT_DIR=$(dirname ${SCRIPT_PATH_IN})
+
+FQDN=$(basename $(realpath ${SCRIPT_DIR}))
+CA_CERTIFICATE_PATH="ca.crt"
+CA_CERTIFICATE_REQUEST_PATH="ca.csr"
+CA_PRIVATE_KEY_PATH="ca-key.pem"
+
+SUB_COMMAND="$1"
+case "${SUB_COMMAND}" in
+create)
+    echo "Timestamp: $(date --iso-8601=second)"
+    set -x
+    cat << EOF > server.json
+{
+    "CN": "registry",
+    "hosts": ["${FQDN}"],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "O": "example-app",
+            "OU": "Community",
+            "L": "...",
+            "ST": "Tokyo",
+            "C": "JP"
+        }
+    ]
+}
+EOF
+    cfssl genkey server.json | cfssljson -bare server
+
+    cat << EOS > ca-csr.json
+{
+    "CN": "example-app",
+    "hosts": [""],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "O": "example-app",
+            "OU": "Sales",
+            "L": "...",
+            "ST": "Tokyo",
+            "C": "JP"
+        }
+    ],
+    "ca": {
+        "expiry": "876000h"
+    }
+}
+EOS
+    cfssl genkey -initca ca-csr.json | cfssljson -bare ca
+
+    cat << EOF > ca-config.json
+{
+    "signing": {
+        "default": {
+        "expiry": "87600h",
+            "usages": [
+                "signing",
+                "key encipherment",
+                "server auth",
+                "client auth"
+            ]
+        }
+    }
+}
+EOF
+    ls -ld ${CA_CERTIFICATE_PATH} ${CA_PRIVATE_KEY_PATH} ${CA_CERTIFICATE_REQUEST_PATH} ca-config.json server.csr
+    cfssl sign -ca ${CA_CERTIFICATE_PATH} -ca-key ${CA_PRIVATE_KEY_PATH} -config ca-config.json server.csr | cfssljson -bare server
+    ;;
+
+show-ca)
+    echo "Timestamp: $(date --iso-8601=second)"
+    set -x
+    ls -ld ${CA_CERTIFICATE_PATH} ${CA_PRIVATE_KEY_PATH}
+    cfssl certinfo -csr ${CA_CERTIFICATE_REQUEST_PATH}
+    cfssl certinfo -cert ${CA_CERTIFICATE_PATH}
+    ;;
+
+show-server)
+    echo "Timestamp: $(date --iso-8601=second)"
+    set -x
+    cfssl certinfo -csr server.csr
+    cfssl certinfo -cert server.pem
+    ;;
+
+*)
+    usage "ERROR: Invalid Argument. : SUB_COMMAND='${SUB_COMMAND}'"
+    exit 1
+    ;;
+
+esac
+----
