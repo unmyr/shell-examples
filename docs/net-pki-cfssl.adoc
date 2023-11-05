@@ -32,7 +32,28 @@ golang-github-cloudflare-cfssl-dev - CloudFlare's PKI and TLS toolkit
 sudo apt-get install -y golang-cfssl
 ----
 
+=== CSR
+
+* `countryName` (Example: `JP`)
+* `stateOrProvinceName` (Example: `Tokyo`, `Kanagawa`)
+* `localityName`: (Example: `Yokohama`)
+* `commonName`: (Example: `app.example.com`)
+
 === Examples
+
+[source,shell]
+..env
+----
+COUNTRY_CODE="JP"
+STATE_OR_PROVINCE_NAME="Tokyo"
+LOCALITY_NAME="Shibuya"
+ORGANIZATION_NAME="... Co.,Ltd."
+COMMON_NAME="app.example.lan"
+
+CA_CERTIFICATE_PATH="ca.crt"
+CA_CERTIFICATE_REQUEST_PATH="ca.csr"
+CA_PRIVATE_KEY_PATH="ca-key.pem"
+----
 
 [source,shell]
 ----
@@ -41,18 +62,20 @@ usage() {
     MESSAGE=$1
     test -n "$MESSAGE" && echo "$MESSAGE" 1>&2
     cat 1>&2 <<EOF
-usage: $0 {create|show}
+usage: $0 {create|show-ca|show-server}
 EOF
 }
 
 SCRIPT_PATH_IN=${BASH_SOURCE:-$0}
-# SCRIPT_NAME=$(basename ${SCRIPT_PATH_IN} .sh)
 SCRIPT_DIR=$(dirname ${SCRIPT_PATH_IN})
 
-FQDN=$(basename $(realpath ${SCRIPT_DIR}))
+COMMON_NAME=$(basename $(realpath ${SCRIPT_DIR}))
 CA_CERTIFICATE_PATH="ca.crt"
 CA_CERTIFICATE_REQUEST_PATH="ca.csr"
 CA_PRIVATE_KEY_PATH="ca-key.pem"
+EXPIRY="87600h"  # 10 years
+
+test -f "${SCRIPT_DIR}/.env" && . "${SCRIPT_DIR}/.env"
 
 SUB_COMMAND="$1"
 case "${SUB_COMMAND}" in
@@ -61,54 +84,52 @@ create)
     set -x
     cat << EOF > server.json
 {
-    "CN": "registry",
-    "hosts": ["${FQDN}"],
+    "CN": "${COMMON_NAME}",
+    "hosts": ["${COMMON_NAME}"],
     "key": {
         "algo": "rsa",
         "size": 2048
     },
     "names": [
         {
-            "O": "example-app",
-            "OU": "Community",
-            "L": "...",
-            "ST": "Tokyo",
-            "C": "JP"
+            "O": "${ORGANIZATION_NAME}",
+            "L": "${LOCALITY_NAME}",
+            "ST": "${STATE_OR_PROVINCE_NAME}",
+            "C": "${COUNTRY_CODE}"
         }
     ]
 }
 EOF
     cfssl genkey server.json | cfssljson -bare server
 
-    cat << EOS > ca-csr.json
+    cat << EOF > ca-csr.json
 {
-    "CN": "example-app",
-    "hosts": [""],
+    "CN": "${COMMON_NAME}",
+    "hosts": ["${COMMON_NAME}"],
     "key": {
         "algo": "rsa",
         "size": 2048
     },
     "names": [
         {
-            "O": "example-app",
-            "OU": "Sales",
-            "L": "...",
-            "ST": "Tokyo",
-            "C": "JP"
+            "O": "${ORGANIZATION_NAME}",
+            "L": "${LOCALITY_NAME}",
+            "ST": "${STATE_OR_PROVINCE_NAME}",
+            "C": "${COUNTRY_CODE}"
         }
     ],
     "ca": {
-        "expiry": "876000h"
+        "expiry": "${EXPIRY}"
     }
 }
-EOS
+EOF
     cfssl genkey -initca ca-csr.json | cfssljson -bare ca
 
     cat << EOF > ca-config.json
 {
     "signing": {
         "default": {
-        "expiry": "87600h",
+        "expiry": "${EXPIRY}",
             "usages": [
                 "signing",
                 "key encipherment",
