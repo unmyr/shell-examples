@@ -561,6 +561,16 @@ echo '[2, 3, 4]' | jq '.[] | if . % 2 == 0 then ./2 else . * 3 + 1 end'
 2
 ----
 
+==== Generate sequences
+
+* Generate path
++
+[source,shell]
+----
+$ seq -f "/export/nfs/pv%04g" -s " " 1 3
+/export/nfs/pv0001 /export/nfs/pv0002 /export/nfs/pv0003
+----
+
 === Networking
 
 ==== IP Command
