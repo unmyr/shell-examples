@@ -321,14 +321,51 @@ abc
 
 ==== exclude a specific line
 
+* sed: using `/d`
++
 [source,console]
 ----
 $ printf "Apple\nBanana\nCherry\nDurian\n" | sed -e '/\(Banana\|Durian\)/d'
 Apple
 Cherry
+----
++
+[source,console]
+----
+$ printf "Apple\nBanana\nCherry\nDurian\n" | sed -e '/\(Banana\|Durian\)/d; s/Apple/Apple2/'
+Apple2
+Cherry
+----
+
+* sed: using `/!p`
++
+[source,console]
+----
 $ printf "Apple\nBanana\nCherry\nDurian\n" | sed -ne '/\(Banana\|Durian\)/!p'
 Apple
 Cherry
+----
++
+[source,console]
+----
+$ printf "Apple\nBanana\nCherry\nDurian\n" | sed -ne '/\(Banana\|Durian\)/!p; s/Apple/Apple2/'
+Apple
+Cherry
+----
+
+
+* Using Ruby
++
+[source,shell]
+----
+printf "Apple\nBanana\nCherry\nDurian\n" | ruby -e "STDIN.each_line(chomp: true){|v| puts v if ! ['Banana', 'Durian'].include?(v)}"
+----
+
+* Using Python
++
+[source,shell]
+----
+printf "Apple\nBanana\nCherry\nDurian\n" | python3 -c "import sys; [print(line) for line in list(filter(lambda x: x not in ['Banana', 'Durian'], [line.rstrip('\n') for line in sys.stdin.readlines()]))]"
 ----
 
 ==== Exclude specific pattern

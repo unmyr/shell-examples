@@ -85,6 +85,7 @@
         "resolvectl",
         "revocs",
         "rrset",
+        "rstrip",
         "Shibuya",
         "sigalg",
         "skel",
