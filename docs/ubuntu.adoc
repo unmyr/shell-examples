@@ -628,6 +628,22 @@ sudo ip addr add 192.168.10.2/32 dev eth0
 sudo ip addr add 192.168.10.2/32 dev eth0
 ----
 
+* statistics
+
+** statistics for all network interfaces
++
+[source,shell]
+----
+ip -s link ls
+----
+
+** statistics for an individual network interface
++
+[source,shell]
+----
+ip -s link ls your_interface
+----
+
 ==== Get IP Address
 
 * Using `awk`
