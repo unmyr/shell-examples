@@ -238,6 +238,26 @@ sudo hwclock --hctosys
 
 === Text Processing
 
+==== Find matching text and replace next line
+
+* Using sed
++
+[source,shell]
+----
+printf "remote:\n  - id: primary\nkey:\n  - id: foo\nacl:\n  - id: update_acl\n" | sed -e '/^key:/{n; s/id: .*/id: UUUUUU/}'
+----
++
+[source,yaml]
+.Results
+----
+remote:
+  - id: primary
+key:
+  - id: UUUUUU
+acl:
+  - id: update_acl
+----
+
 ==== Combining echo and cat on Unix
 
 * Prepend string

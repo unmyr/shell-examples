@@ -93,18 +93,38 @@ export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=35:ln=32:bn=32:se=36'
 
 === Input password
 
+* 1 time
++
 [source,shell]
-.read_password.sh
+.password_read_1time.sh
 ----
-include::../src/read_password.sh[]
+include::../src/password_read_1time.sh[]
 ----
-
++
 [source,console]
 .Example outputs
 ----
-$ bash read_password.sh
+$ bash password_read_1time.sh
 Password:
 PASS: aaa
+----
+
+* Enable retype password
++
+[source,shell]
+.password_read_repeat.sh
+----
+include::../src/password_read_repeat.sh[]
+----
++
+[source,console]
+----
+$ ./password_read_repeat.sh
+Password: 
+Re-type new password: 
+ERROR: password verification error
+Password: 
+Re-type new password: 
 ----
 
 .References
