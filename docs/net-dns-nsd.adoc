@@ -55,7 +55,7 @@ sudo cp -p /etc/nsd/nsd.conf /etc/nsd/nsd.conf.org
 . Add IP
 +
 --
-* Add an IP temporarily:
+* Temporary IP address assignment
 +
 [source,shell]
 ----
@@ -67,7 +67,7 @@ sudo ip addr add 192.168.10.2/32 dev eth0
 ** Example of netplan settings
 +
 [source,yaml]
-./etc/netplan/01-eth0.network
+./etc/netplan/01_eth0_network.yaml
 ----
 network:
   version: 2
@@ -76,8 +76,11 @@ network:
     eth0:
       dhcp4: no
       addresses:
+        - 172.xxx.yyy.18/20
         - 192.168.10.2/32
-      gateway4: 172.30.208.1
+      routes:
+        - to: default
+          via: 172.30.208.1
       nameservers:
           addresses: [172.30.208.1, 8.8.8.8]
 ----
@@ -109,6 +112,8 @@ ip addr show dev eth0
 [NOTE]
 ====
 Used for Private/internal DNS Namespaces (RFC 6762 (Appendix G))
+
+* https://datatracker.ietf.org/doc/html/rfc6762#appendix-G[Appendix G. Private DNS Namespaces | RFC 6762 - Multicast DNS^]
 ====
 --
 +
@@ -211,8 +216,14 @@ nsd-checkconf /etc/nsd/nsd.conf
 +
 [source,shell]
 ----
-nsd-checkzone example.com /etc/nsd/example.com.zone
+nsd-checkzone example.internal. /etc/nsd/example.internal.zone
 nsd-checkzone yyy.xxx.172.in-addr.arpa /etc/nsd/yyy.xxx.172.in-addr.arpa.zone
+...
+----
++
+[source,shell]
+----
+sudo systemctl restart nsd
 ----
 
 . Enable systemd
@@ -254,6 +265,9 @@ sudo systemctl restart nsd
 sudo nsd-control reload
 ----
 --
+
+
+==== Verify NSD
 
 . Verify NSD is listening
 +
@@ -473,6 +487,8 @@ sudo systemctl restart unbound
 ----
 --
 
+=== Verify Unbound
+
 . Verify NSD is listening
 +
 [source,shell]
@@ -574,6 +590,28 @@ $wslIp = (wsl -- ip -o -4 -j addr s eth0 | ConvertFrom-Json | %{ $_.addr_info.lo
 Resolve-DnsName -Name example.internal -Server $wslIp
 ----
 --
+
+* K8s
++
+[source,shell]
+----
+sudo systemctl status systemd-timesyncd
+sudo systemctl status nsd
+sudo systemctl status unbound
+----
++
+[source,shell]
+----
+kubectl run -q -n "${NAMESPACE:-default}" ubuntu -it --image=ubuntu:latest --rm --restart=Never --overrides='{ "apiVersion": "v1", "spec": { "dnsConfig": { "nameservers" : [ "172.xxx.yyy.18" ] } } }' -- /bin/bash
+----
++
+[source,shell]
+----
+apt-get update; apt-get install -y bind9-dnsutils iproute2
+cat /etc/resolv.conf
+dig www.google.com
+(set -x; dig test.example.internal; dig @172.xxx.yyy.18 test.example.internal)
+----
 
 == Troubleshooting
 
@@ -753,24 +791,24 @@ sudo cp -i -p /lib/systemd/system/systemd-timesyncd.service /lib/systemd/system/
 See: https://choichoitto.amebaownd.com/pages/540301/blog[【備忘録】WSL2 上の Ubuntu で systemd-timesyncd が動作してなかったのをなんとかしてみた件 | BLOG | つれづれなるままに^]
 
 
-** Edit `/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service`
+** Edit `/lib/systemd/system/systemd-timesyncd.service`
 +
 [source,shell]
 .Replace the ConditionVirtualization setting with sed
 ----
-sudo sed -i 's/^\(ConditionVirtualization\)=.*/\1=/g' /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+sudo sed -i 's/^\(ConditionVirtualization\)=.*/\1=/g' /lib/systemd/system/systemd-timesyncd.service
 ----
 +
 [source,shell]
 .Edit the ConditionVirtualization setting with vi
 ----
-sudo vi /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+sudo vi /lib/systemd/system/systemd-timesyncd.service
 ----
 
 ** Diff
 +
 [source,diff]
-.diff -0 -cw /lib/systemd/system/systemd-timesyncd.service.org /etc/systemd/system/sysinit.target.wants/systemd-timesyncd.service
+.diff -0 -cw /lib/systemd/system/systemd-timesyncd.service.org /lib/systemd/system/systemd-timesyncd.service
 ----
 *** 14 ****
 ! ConditionVirtualization=!container
