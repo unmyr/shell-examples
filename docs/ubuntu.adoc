@@ -1388,6 +1388,27 @@ gpg2 --list-secret-keys | grep -E -B 1 '^uid\W' | head -n1 | sed 's/^ *//g'
 pass init "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ----
 
+=== OS
+
+==== Boot log
+
+To see information from my most recent boot, run
+
+[source,shell]
+----
+journalctl -b
+----
+
+To see the details that were logged during a previous boot, just in case you need to compare them with your most recent, run
+
+[source,shell]
+----
+journalctl --list-boots 
+----
+
+.References
+* https://askubuntu.com/questions/995711/where-can-i-find-the-boot-log[Where can I find the boot log? - Ask Ubuntu^]
+
 
 === Hardware
 

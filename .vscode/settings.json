@@ -46,6 +46,7 @@
         "inet",
         "initca",
         "inputrc",
+        "journalctl",
         "Kanagawa",
         "keyid",
         "keysize",
