@@ -166,6 +166,41 @@ date '+%Y-%m-%d' --date="$(date +%Y-%m-01) -1 day"
 .References
 * https://hydrocul.github.io/wiki/commands/date.html[date コマンド | コマンドの使い方(Linux) | hydroculのメモ^]
 
+==== Calculate the elapsed time
+
+* Calculate the elapsed time between two ISO 8601 formatted datetime strings in Bash
++
+[source,shell]
+----
+T0_ISO8601="2023-12-31 23:16:15"
+T1_ISO8601="2024-01-01 00:15:17"
+printf "scale=2; (%s - %s)/60.0\n" $(date --date "${T1_ISO8601}" +%s) $(date --date "${T0_ISO8601}" +%s) | bc -l
+----
++
+[source,console]
+----
+$ T0_ISO8601="2023-12-31 23:16:15"; T1_ISO8601="2024-01-01 00:15:17"
+$ printf "scale=2; (%s - %s)/60.0\n" $(date --date "${T1_ISO8601}" +%s) $(date --date "${T0_ISO8601}" +%s) | bc -l
+59.03
+----
+
+* Calculate the elapsed time between two ISO 8601 formatted datetime strings in Python
++
+[source,shell]
+----
+T0_ISO8601="2023-12-31 23:16:15"
+T1_ISO8601="2024-01-01 00:15:17"
+python3 -c "from datetime import datetime; print(datetime.fromisoformat('${T1_ISO8601}') - datetime.fromisoformat('${T0_ISO8601}'))"
+----
++
+[source,console]
+----
+$ T0_ISO8601="2023-12-31 23:16:15"; T1_ISO8601="2024-01-01 00:15:17"
+$ python3 -c "from datetime import datetime; print(datetime.fromisoformat('${T1_ISO8601}') - datetime.fromisoformat('${T0_ISO8601}'))"
+0:59:02
+----
+
+
 ==== NTP
 
 * Show status
