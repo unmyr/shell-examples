@@ -269,6 +269,19 @@ done
 IFS="$IFS_OLD"
 ----
 
+==== Remove an element from an array
+
+[source,shell]
+----
+a=(foo bar baz)
+a=(${a[@]/bar})
+
+for v in "${a[@]}"; do
+    echo "$v"
+done
+----
+
+
 === Flow control statements
 
 * Using counter
