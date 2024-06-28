@@ -355,7 +355,7 @@ i=0; while [[ i -lt 5 ]]; do ((i++)); echo $i; done
 echo {1..5} | tr ' ' '\n'
 ----
 +
-[source,shell]
+[source,plaintext]
 ----
 #!/bin/bash
 for i in {1..5}; do
@@ -594,4 +594,53 @@ SCRIPT_PATH_ABS=$(realpath ${SCRIPT_PATH_IN})
 echo "SCRIPT_PATH_ABS='${SCRIPT_PATH_ABS}'"
 touch ${WORK_DIR}/a.txt
 ls -ld $(find ${WORK_DIR})
+----
+
+=== Process
+
+==== Wait multiple processes 1
+
+* It waits for multiple processes launched in a while loop.
+
+** NG: Wait failed because `jobs -p` result is empty. 
++
+[source,shell]
+----
+#!/bin/bash
+echo "PID: $$"
+seq 2 4 | shuf | while read SLEEP_SEC;do
+    MY_PID="$BASHPID"
+    (
+        echo "START($SLEEP_SEC): $MY_PID > $BASHPID"
+        sleep $SLEEP_SEC
+        echo "END($SLEEP_SEC): $MY_PID > $BASHPID"
+    ) &
+done
+
+set -x
+time wait $(jobs -p)
+echo "END"
+----
+
+
+** OK
++
+[source,shell]
+----
+#!/bin/bash
+echo "PID: $$"
+
+# Loop using redirection input.
+while read SLEEP_SEC; do
+    MY_PID="$BASHPID"
+    (
+        echo "START($SLEEP_SEC): $MY_PID > $BASHPID"
+        sleep $SLEEP_SEC
+        echo "END($SLEEP_SEC): $MY_PID > $BASHPID"
+    ) &
+done < <(seq 2 4 | shuf)
+
+set -x
+time wait $(jobs -p)
+echo "END"
 ----
