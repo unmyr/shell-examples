@@ -124,3 +124,20 @@ bash,10751 src/stdin/loop_from_stdin.sh
 [2024-12-28T08:08:35+09:00 ]: $1=/dev/fd/62: c
 [2024-12-28T08:08:36+09:00 ]: $2=/dev/fd/61: C
 ----
+
+* Example 5: `read_from_tty.sh`
++
+[source,plaintext]
+.Result 1: Input from terminal
+----
+$ bash read_from_tty.sh
+Enter the some word: aaaa
+Output: aaaa
+----
++
+[source,plaintext]
+.Result 2: Input from PIPE
+----
+$ bash src/stdin/read_from_tty.sh < <(echo -n "Hello"; sleep 1; echo " world!")
+Output: Hello world!
+----
