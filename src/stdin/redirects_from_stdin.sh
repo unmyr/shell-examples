@@ -5,17 +5,14 @@ SCRIPT_DIR=$(dirname ${SCRIPT_PATH_IN})
 
 SHOW_ARGS_SHELL="${SCRIPT_DIR}/${SCRIPT_NAME}_show_args.sh"
 
-trap "rm -f ${SHOW_ARGS_SHELL}" EXIT
-
-cat > ${SHOW_ARGS_SHELL} <<'EOF'
+bash <(cat <<'EOF'
 #!/usr/bin/env bash
-echo "ARGC: $#"
-echo "ARGS: $@"
+SCRIPT_PATH_IN=${BASH_SOURCE:-$0}
+
+echo "COMMAND: $0, BASH_SOURCE: ${BASH_SOURCE}; ARGC: $#, ARGS: $@"
 
 for STDIN in "$@"; do
     (set -x; cat $STDIN)
 done
 EOF
-chmod a+x ${SHOW_ARGS_SHELL}
-
-bash ${SHOW_ARGS_SHELL} <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
+) <(echo "apple") <(echo "banana peach" | tr ' ' '\n')

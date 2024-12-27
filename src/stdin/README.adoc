@@ -43,6 +43,19 @@ $ diff <(printf "apple\nbanana\ncherry\n") <(printf "apple\ncherry\n")
 +
 [source,shell]
 ----
+bash <(echo '#!/usr/bin/env bash'; echo 'echo "BASH_SOURCE: $BASH_SOURCE, \$0: $0, ARGC: $#, ARGS: $@"') <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
+----
++
+[source,plaintext]
+.Results
+----
+BASH_SOURCE: /dev/fd/63, $0: /dev/fd/63, ARGC: 2, ARGS: /dev/fd/62 /dev/fd/61
+----
+
+* Example 3
++
+[source,shell]
+----
 bash show_args.sh <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
 ----
 +
@@ -59,6 +72,7 @@ done
 ----
 +
 [source,plaintext]
+.Results
 ----
 $ bash ./src/stdin/redirects_from_stdin.sh 
 ARGC: 2
@@ -68,4 +82,45 @@ apple
 + cat /dev/fd/62
 banana
 peach
+----
+
+* Example 4: `loop_from_stdin.sh`
++
+[source,plaintext]
+----
+$ bash src/stdin/loop_from_stdin.sh 
+--- Read lines from stdin ---
+[2024-12-28T08:08:27+09:00 ]: INFO: ARGC=0, ARGS=[]
+[2024-12-28T08:08:27+09:00 ]: INFO: stdin is not coming from the terminal
+[2024-12-28T08:08:27+09:00 ]: INFO: stdin is coming from a pipe
+[2024-12-28T08:08:27+09:00 ]: INFO: /dev/stdin -> /proc/10763/fd/pipe:[240561]
+bash,10751 src/stdin/loop_from_stdin.sh
+  └─bash,10753 /dev/fd/63
+      ├─bash,10755 src/stdin/loop_from_stdin.sh
+      │   └─sleep,10757 1
+      └─pstree,10764 -a -p 10751
+[2024-12-28T08:08:27+09:00 ]: /dev/stdin: 1
+[2024-12-28T08:08:28+09:00 ]: /dev/stdin: 2
+[2024-12-28T08:08:30+09:00 ]: /dev/stdin: 3
+
+--- Read lines from argv[1] ---
+[2024-12-28T08:08:33+09:00 ]: INFO: ARGC=2, ARGS=[/dev/fd/62 /dev/fd/61]
+[2024-12-28T08:08:33+09:00 ]: INFO: stdin is not coming from the terminal
+[2024-12-28T08:08:33+09:00 ]: INFO: stdin is not coming from a pipe
+[2024-12-28T08:08:33+09:00 ]: INFO:/dev/stdin -> /dev/null
+[2024-12-28T08:08:33+09:00 ]: /dev/fd/62 -> /proc/10852/fd/pipe:[241564]
+[2024-12-28T08:08:33+09:00 ]: /dev/fd/61 -> /proc/10854/fd/pipe:[241565]
+bash,10751 src/stdin/loop_from_stdin.sh
+  ├─bash,10838 src/stdin/loop_from_stdin.sh
+  │   └─sleep,10842 1
+  ├─bash,10839 src/stdin/loop_from_stdin.sh
+  │   └─sleep,10843 1
+  └─bash,10840 /dev/fd/63 /dev/fd/62 /dev/fd/61
+      └─pstree,10855 -a -p 10751
+[2024-12-28T08:08:33+09:00 ]: $1=/dev/fd/62: a
+[2024-12-28T08:08:34+09:00 ]: $1=/dev/fd/62: b
+[2024-12-28T08:08:34+09:00 ]: $2=/dev/fd/61: A
+[2024-12-28T08:08:35+09:00 ]: $2=/dev/fd/61: B
+[2024-12-28T08:08:35+09:00 ]: $1=/dev/fd/62: c
+[2024-12-28T08:08:36+09:00 ]: $2=/dev/fd/61: C
 ----
