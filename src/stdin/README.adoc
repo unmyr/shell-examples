@@ -1,0 +1,71 @@
+## Redirect from stdin
+
+* Example 1: `cat <&0`
++
+[source,shell]
+----
+bash -c 'cat <&0' < <(printf "apple\nbanana\ncherry\n")
+----
++
+[source,plaintext]
+----
+apple
+banana
+cherry
+----
+
+* Example 2: `cat -`
++
+[source,shell]
+----
+bash -c 'cat -' < <(printf "apple\nbanana\ncherry\n")
+----
++
+[source,plaintext]
+----
+apple
+banana
+cherry
+----
+
+### Multiple inputs
+
+* Example 1
++
+[source,plaintext]
+----
+$ diff <(printf "apple\nbanana\ncherry\n") <(printf "apple\ncherry\n")
+2d1
+< banana
+----
+
+* Example 2
++
+[source,shell]
+----
+bash show_args.sh <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
+----
++
+[source,shell]
+.show_args.sh
+----
+#!/usr/bin/env bash
+echo "ARGC: $#"
+echo "ARGS: $@"
+
+for STDIN in "$@"; do
+    (set -x; cat $STDIN)
+done
+----
++
+[source,plaintext]
+----
+$ bash ./src/stdin/redirects_from_stdin.sh 
+ARGC: 2
+ARGS: /dev/fd/63 /dev/fd/62
++ cat /dev/fd/63
+apple
++ cat /dev/fd/62
+banana
+peach
+----
