@@ -320,7 +320,7 @@ EOF
 [source,shell]
 .prepend_using_cat.sh
 ----
-#!/bin/bash
+#!/usr/bin/env bash
 TMP_FILE=$(mktemp $0-XXX.txt) || exit $?
 trap "rm -f $TMP_FILE" 0
 
@@ -335,7 +335,7 @@ printf "Apple\nBanana\n" | cat - $TMP_FILE
 [source,shell]
 .prepend_using_sed.sh
 ----
-#!/bin/bash
+#!/usr/bin/env bash
 TMP_FILE=$(mktemp $0-XXX.txt) || exit $?
 trap "rm -f $TMP_FILE" 0
 

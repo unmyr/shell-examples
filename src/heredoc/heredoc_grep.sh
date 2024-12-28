@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 grep Banana <<EOF
 Apple
 Banana

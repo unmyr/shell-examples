@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 test $# -ne 1 && { echo "ERROR: Invalid argument. : ARG-NUM=$#"; exit 1; }
 HTPASSWD_FILE=".htpasswd"
 

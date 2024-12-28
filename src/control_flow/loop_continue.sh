@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 i=0
 sum=0
 while read LINE;do

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/usr/bin/env bash -x
 ./getopt_ex.sh
 ./getopt_ex.sh --namespace n1
 ./getopt_ex.sh --namespace n1 aaa bbb

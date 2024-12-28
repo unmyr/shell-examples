@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 NEW_PASSWORD=
 while read -s -p "Password: " NEW_PASSWORD; do
     echo ""

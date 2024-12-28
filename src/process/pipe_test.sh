@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -t 0 ]; then
   echo "Pipe not open"
 else

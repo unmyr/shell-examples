@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 test $# -eq 2 || { echo "ERROR: Invalid argument. : ARG-NUM=$#"; exit 1; }
 SUB_COMMAND=$1
 HTUSER=$2

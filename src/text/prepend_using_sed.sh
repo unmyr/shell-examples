@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 TMP_FILE=$(mktemp $0-XXX.txt) || exit $?
 trap "rm -f $TMP_FILE" 0
 

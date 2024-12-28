@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "PID: $$"
 
 # Loop using redirection input.

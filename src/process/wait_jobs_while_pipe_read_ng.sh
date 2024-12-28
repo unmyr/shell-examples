@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "PID: $$"
 seq 2 4 | shuf | while read SLEEP_SEC; do
     MY_PID="$BASHPID"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 PID_FILE=$(mktemp -t $(basename "$0" .sh)XXX)
 trap "rm -f ${PID_FILE}" 0
 

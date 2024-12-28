@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 i=1
 while read LINE;do
     [[ i -gt 3 ]] && break

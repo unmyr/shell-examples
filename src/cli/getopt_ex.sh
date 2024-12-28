@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "\$@='$@'"
 GETOPT_TEMP=$(getopt -o n:v --long dry-run,namespace: -- "$@")
 VALID_ARGUMENTS=$?

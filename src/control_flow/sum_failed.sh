@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 trap 'rm -f a.txt' 0
 
 cat > a.txt <<EOF

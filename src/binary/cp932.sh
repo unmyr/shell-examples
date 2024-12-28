@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ICONV_ERROR_FILE='iconv_errors.txt'
 trap "rm -f ${ICONV_ERROR_FILE}" 0
 

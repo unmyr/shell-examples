@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 a=(foo bar "Hello world")
 IFS_OLD="$IFS"
 IFS=""

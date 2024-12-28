@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 sed -e '/^extraEnvVars: \[\]$/r'<(cat <<'EOF'
 - extraEnvVars:
   - name: FOO

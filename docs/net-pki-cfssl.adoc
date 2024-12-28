@@ -57,7 +57,7 @@ CA_PRIVATE_KEY_PATH="ca-key.pem"
 
 [source,shell]
 ----
-#!/bin/bash
+#!/usr/bin/env bash
 usage() {
     MESSAGE=$1
     test -n "$MESSAGE" && echo "$MESSAGE" 1>&2

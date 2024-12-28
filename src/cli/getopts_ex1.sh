@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 X_OPT=0
 F_ARG="nil"
 

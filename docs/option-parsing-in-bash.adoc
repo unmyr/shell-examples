@@ -29,7 +29,7 @@ endif::[]
 
 [source,shell]
 ----
-#!/bin/bash
+#!/usr/bin/env bash
 X_OPT=0
 F_ARG="nil"
 
@@ -81,7 +81,7 @@ ERROR: Invalid operand. : ARG-NUM=3
 
 [source,shell]
 ----
-#!/bin/bash
+#!/usr/bin/env bash
 echo "\$@='$@'"
 GETOPT_TEMP=$(getopt -o n:v --long dry-run,namespace: -- "$@")
 VALID_ARGUMENTS=$?
