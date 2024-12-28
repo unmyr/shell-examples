@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 mapfile -t a <<'EOF'
-1
-2
-3
+foo
+bar
+Hello world
 EOF
 
 echo "size: ${#a[@]}"
