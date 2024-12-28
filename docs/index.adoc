@@ -281,6 +281,15 @@ for v in "${a[@]}"; do
 done
 ----
 
+=== Ternary operator: 三項演算子
+
+[source,plaintext]
+----
+$ true && { echo "A"; true; } || { echo "B"; }
+A
+$ false && { echo "A"; true; } || { echo "B"; }
+B
+----
 
 === Flow control statements
 
