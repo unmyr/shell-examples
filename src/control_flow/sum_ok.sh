@@ -1,6 +1,6 @@
 i=0
 sum=0
-while read LINE;do
+while read -r LINE;do
     [[ i -gt 2 ]] && break
     sum=$((sum + LINE))
     ((++i))

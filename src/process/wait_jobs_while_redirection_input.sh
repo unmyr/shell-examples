@@ -2,7 +2,7 @@
 echo "PID: $$"
 
 # Loop using redirection input.
-while read SLEEP_SEC; do
+while read -r SLEEP_SEC; do
     MY_PID="$BASHPID"
     (
         echo "START($SLEEP_SEC): $MY_PID > $BASHPID"

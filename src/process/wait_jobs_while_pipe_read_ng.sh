@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo "PID: $$"
-seq 2 4 | shuf | while read SLEEP_SEC; do
+seq 2 4 | shuf | while read -r SLEEP_SEC; do
     MY_PID="$BASHPID"
     (
         echo "START($SLEEP_SEC): $MY_PID > $BASHPID"

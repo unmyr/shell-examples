@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-read -s -p "Password: " MY_PASSWORD
+read -r -s -p "Password: " MY_PASSWORD
 echo
 
 if [ -z "$MY_PASSWORD" ]; then

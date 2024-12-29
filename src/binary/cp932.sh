@@ -2,7 +2,7 @@
 ICONV_ERROR_FILE='iconv_errors.txt'
 trap "rm -f ${ICONV_ERROR_FILE}" 0
 
-while read WORDS_UTF8_WITH_COMMENT; do
+while read -r WORDS_UTF8_WITH_COMMENT; do
     WORDS_UTF8=$(echo -n "${WORDS_UTF8_WITH_COMMENT}" | sed -e 's/^\s*//; s/\s*#.*$//; s/\s*$//')
     COMMENT=$(echo -n "${WORDS_UTF8_WITH_COMMENT}" | sed -e 's/^\s*[^#]*//; s/\s*#\s*//')
 
@@ -44,7 +44,7 @@ done <<EOF
 EOF
 
 JIS_X_0213_PLANE_2="fa6f fa71 fa77 fa75 fa7a fa78 fa79"
-while read HEX_CODES_CP932_WITH_COMMENT; do
+while read -r HEX_CODES_CP932_WITH_COMMENT; do
     WORDS_UTF8=()
     HEX_CODES_CP932=$(echo ${HEX_CODES_CP932_WITH_COMMENT} | sed -e 's/\s*#.*$//')
     COMMENT=$(echo -n "${HEX_CODES_CP932_WITH_COMMENT}" | sed -e 's/^\s*[^#]*//; s/\s*#\s*//')

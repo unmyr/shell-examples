@@ -11,7 +11,7 @@ EOF
 
 i=0
 sum=0
-cat a.txt | while read LINE;do
+cat a.txt | while read -r LINE;do
     ((++i))
     [[ i -le 2 ]] && continue
     echo $LINE

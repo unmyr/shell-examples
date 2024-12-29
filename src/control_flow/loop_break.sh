@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 i=1
-while read LINE;do
+while read -r LINE;do
     [[ i -gt 3 ]] && break
     echo i=$i: $LINE
     ((++i))

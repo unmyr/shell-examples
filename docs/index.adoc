@@ -406,7 +406,7 @@ done
 #!/usr/bin/env bash
 i=0
 sum=0
-while read LINE;do
+while read -r LINE;do
     [[ i -gt 2 ]] && break
     sum=$((sum + LINE))
     ((++i))
@@ -434,7 +434,7 @@ SUM=6
 #!/usr/bin/env bash
 i=0
 sum=0
-while read LINE;do
+while read -r LINE;do
     ((++i))
     [[ i -le 2 ]] && continue
     echo $LINE
@@ -476,7 +476,7 @@ EOF
 
 i=0
 sum=0
-cat a.txt | while read LINE;do
+cat a.txt | while read -r LINE;do
     ((++i))
     [[ i -le 2 ]] && continue
     echo $LINE
@@ -617,7 +617,7 @@ ls -ld $(find ${WORK_DIR})
 ----
 #!/usr/bin/env bash
 echo "PID: $$"
-seq 2 4 | shuf | while read SLEEP_SEC;do
+seq 2 4 | shuf | while read -r SLEEP_SEC;do
     MY_PID="$BASHPID"
     (
         echo "START($SLEEP_SEC): $MY_PID > $BASHPID"
@@ -640,7 +640,7 @@ echo "END"
 echo "PID: $$"
 
 # Loop using redirection input.
-while read SLEEP_SEC; do
+while read -r SLEEP_SEC; do
     MY_PID="$BASHPID"
     (
         echo "START($SLEEP_SEC): $MY_PID > $BASHPID"
