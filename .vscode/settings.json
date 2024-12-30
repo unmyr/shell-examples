@@ -60,6 +60,7 @@
         "logfile",
         "lrwxrwxrwx",
         "lshw",
+        "missingok",
         "mktemp",
         "mmin",
         "MULTIFEED",

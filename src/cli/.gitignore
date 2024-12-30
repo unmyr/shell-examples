@@ -1,0 +1,4 @@
+logrotate.logging_stdout.conf
+logrotate.logging_stdout.state
+stderr.log
+stdout.log
