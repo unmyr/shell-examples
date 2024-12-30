@@ -1,3 +1,38 @@
+## File descriptor examples
+
+* Open/Close file descriptor
++
+[source,shell]
+.file_descriptor_example.sh
+----
+exec 5<<EOF
+apple
+cherry
+banana
+EOF
+
+while read -r -u 5 LINE; do
+    echo "Read from file descriptor 5: $LINE"
+done
+
+exec 5>&-
+----
++
+[source,plaintext]
+----
+$ ./file_descriptor_example.sh 
+INFO: Before the file descriptor is opened: 0, 1, 19, 2, 21, 22, 23, 24, 3
+INFO: Open file descriptor 5.
+INFO: After the file descriptor 5 is open: 0, 1, 19, 2, 21, 22, 23, 24, 3, 5
+INFO: realpath /proc/self/fd/5 -> /proc/62034/fd/pipe:[1239468]
+INFO: test -p /proc/self/fd/5 -> 0
+Read from file descriptor 5: apple
+Read from file descriptor 5: cherry
+Read from file descriptor 5: banana
+INFO: Close file descriptor 5.
+INFO: After the file descriptor 5 is closed: 0, 1, 19, 2, 21, 22, 23, 24, 3
+----
+
 ## Redirect from stdin
 
 * Example 1: `cat <&0`
