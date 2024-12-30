@@ -19,25 +19,33 @@ get_messages () {
     trace_fds "2a" 1>&2
 }
 
+filter_info () {
+    grep -i -e '\(fatal\)' | sed -e 's/\(fatal\)/#\1#/i'
+    trace_fds "2d: filter_info" | sed -e 's/^/  /' 1>&2
+}
+
 filter_error () {
     sed -e 's/^/  /' | grep -i -e '\(fatal\|trace\)' | sed -e 's/\(fatal\)/*\1*/i' 1>&2
-    trace_fds "2b" | sed -e 's/^/  /' 1>&2
+    exec 3>&-
+    trace_fds "2b: filter_error" | sed -e 's/^/  /' 1>&2
 }
 
 echo "INFO: TTY=$(tty)"
 
 trace_fds "1"
 
-# 2>&1: Redirects the stderr of the command to file descriptor 1
-#   >&3: Create file descriptor 3, and redirects the stdout of the command to file descriptor 3
-# 3>&-: Close file descriptor 3
-# 3>&1: Redirects the output of the command to file descriptor 1
-# {
-#     get_messages 2>&1 1>&3 3>&-| filter_error
-#     trace_fds "2c" 1>&2
-# } 3> >(trace_fds "2d"; grep -e '\(recovered\)')
+# n>&1: Duplicate the file descriptor from 1(stdout) to _n_.
+# 2>&1: Duplicate the file descriptor from 1(stdout) to 2(stderr).
+#            Redirects the 2(stderr) of the command to file descriptor 1(stdout)
+# 1>&3: Duplicate the file descriptor from _n_ to 1(stdout).
+# n>&-: Close file descriptor _n_
 {
-    get_messages 2>&1 >&3 3>&-  | filter_error 3>&-
+    get_messages 2>&1 1>&3 3>&- | filter_error
     trace_fds "2c" 1>&2
-} 3>&1
+} 3> >(filter_info)
+# {
+#     get_messages 2>&1 1>&3 3>&- | filter_error 3>&-
+#     exec 3>&-
+#     trace_fds "2c" 1>&2
+# } 3>&1
 trace_fds "3" 1>&2
