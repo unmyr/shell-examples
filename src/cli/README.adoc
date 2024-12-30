@@ -1,3 +1,52 @@
+## Filter
+
+* Filter stdout
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1> >(grep 2)
+----
++
+[source,plaintext]
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1> >(grep 2)
+error1
+error2
+info2
+----
+
+* Filter stderr
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)
+----
++
+[source,plaintext]
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)
+error2
+info1
+info2
+----
+
+* `piping_stderr_1.sh`
++
+[source,plaintext]
+----
+$ ./piping_stderr_1.sh 
+INFO: TTY=/dev/pts/4
+TRACE: 1: 1(/proc/183263/fd/pipe:[3470331]) 2(/dev/pts/4) 3(/proc/183267/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+INFO: No fatal error occurred
+INFO: The xyz service recovered automatically
+  ERROR: *Fatal* error
+  TRACE: 2a: 1(/proc/183275/fd/pipe:[3470885]) 2(/proc/183277/fd/pipe:[3471372]) 3(/proc/183279/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+  TRACE: 2b: 1(/proc/183284/fd/pipe:[3470905]) 2(/dev/pts/4) 3(/proc/183288/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+TRACE: 2c: 1(/proc/183291/fd/pipe:[3470915]) 2(/dev/pts/4) 3(/dev/pts/4): fds=[0, 1, 19, 2, 20, 22, 3, 4]
+TRACE: 3: 1(/proc/183298/fd/pipe:[3471423]) 2(/dev/pts/4) 3(/proc/183302/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+----
+
+
 ## File descriptor examples
 
 * Open/Close file descriptor
