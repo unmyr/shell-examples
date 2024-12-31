@@ -78,11 +78,12 @@ error2
 info2
 ----
 
-* Filter only standard error with grep
+* Redirect standard error to standard output, and filter with grep
 +
 [source,shell]
 ----
 (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)
+((echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)) 2> /dev/null
 ----
 +
 [source,plaintext]
@@ -91,9 +92,129 @@ $ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2>
 error2
 info1
 info2
+$ ((echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)) 2> /dev/null
+error2
+info1
+info2
 ----
 
-### Examples 3: 
+### Examples 3: Filter multiple outputs
+
+* Redirect standard output to file descriptor 7, and have the receiving end of the pipe receive file descriptor 7 as standard input. In this case, the standard output of the program that generated the output is discarded by `7>&-` and instead redirected to the pipe of file descriptor 7 (`1>&7`), so the process receiving the output needs to switch the input from 7 to 1 using `7>&1`.
++
+[source,shell]
+----
+(
+    (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&-
+) 7>&1
+----
++
+[source,plaintext]
+----
+$ ( (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&- ) 7>&1
+error1
+error2
+info1
+info2
+----
+
+** As expected, standard output is assigned to file descriptor 1, and standard error is assigned to file descriptor 2.
++
+[source,shell]
+----
+(
+    (
+        (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&- 
+    ) 7>&1
+) 2> /dev/null
+(
+    (
+        (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&-
+    ) 7>&1
+) > /dev/null
+----
++
+[source,plaintext]
+----
+$ (
+    (
+        (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&- 
+    ) 7>&1
+) 2> /dev/null
+info1
+info2
+$ (
+    (
+        (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1>&7 7>&-
+    ) 7>&1
+) > /dev/null
+error1
+error2
+----
+
+* Filter multiple outputs
++
+[source,shell]
+----
+(
+    (
+        echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+    ) 2>&1 1>&7 7>&- | grep error2 1>&2
+) 7>&1 | grep info1
+----
++
+[source,plaintext]
+----
+$ (
+    (
+        echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+    ) 2>&1 1>&7 7>&- | grep error2 1>&2
+) 7>&1 | grep info1
+error2
+info1
+----
+
+** As expected, standard output is assigned to file descriptor 1, and standard error is assigned to file descriptor 2.
++
+[source,shell]
+----
+(
+    (
+        (
+            echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+        ) 2>&1 1>&7 7>&- | grep error2 1>&2
+    ) 7>&1 | grep info1
+) 2> /dev/null
+(
+    (
+        (
+            echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+        ) 2>&1 1>&7 7>&- | grep error2 1>&2
+    ) 7>&1 | grep info1
+) 1> /dev/null
+----
++
+[source,plaintext]
+----
+$ (
+    (
+        (
+            echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+        ) 2>&1 1>&7 7>&- | grep error2 1>&2
+    ) 7>&1 | grep info1
+) 2> /dev/null
+info1
+$ (
+    (
+        (
+            echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n'
+        ) 2>&1 1>&7 7>&- | grep error2 1>&2
+    ) 7>&1 | grep info1
+) 1> /dev/null
+error2
+----
+
+### Examples 4: 
 
 * `piping_stderr_1.sh`
 +
