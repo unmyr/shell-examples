@@ -89,6 +89,7 @@
         "rcvd",
         "readlines",
         "realpath",
+        "Redirections",
         "resolv",
         "resolvconf",
         "resolvectl",

@@ -1,0 +1,269 @@
+## Redirections 1: Output
+
+### Examples 1: Discard standard output and redirect standard error to standard output
+
+* First examples
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n')
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> /dev/null
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') > /dev/null
+----
++
+[source,plaintext]
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n')
+error1
+error2
+info1
+info2
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> /dev/null
+info1
+info2
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') > /dev/null
+error1
+error2
+----
+
+* OK: The standard error redirects to standard stdout, and then stdout redirects to `/dev/null`.
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2>&1 > /dev/null
+(
+    (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2>&1 > /dev/null
+) 2> /dev/null
+----
++
+[source,plaintext]
+.Results
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2>&1 > /dev/null
+error1
+error2
+$ ((echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2>&1 > /dev/null) 2> /dev/null
+error1
+error2
+----
+
+* NG: The standard output redirects to `/dev/null`, and 1(standard output) and 2(standard error) are redirected to `/dev/null`.
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') > /dev/null 2>&1
+----
++
+[source,plaintext]
+.Results
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') > /dev/null 2>&1
+(empty)
+----
+
+### Examples 2: Filter only standard output/error with grep
+
+* Filter only standard output with grep
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1> >(grep 2)
+----
++
+[source,plaintext]
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 1> >(grep 2)
+error1
+error2
+info2
+----
+
+* Filter only standard error with grep
++
+[source,shell]
+----
+(echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)
+----
++
+[source,plaintext]
+----
+$ (echo "error1 error2" | tr ' ' '\n' 1>&2; echo "info1 info2" | tr ' ' '\n') 2> >(grep 2)
+error2
+info1
+info2
+----
+
+### Examples 3: 
+
+* `piping_stderr_1.sh`
++
+[source,plaintext]
+----
+$ ./piping_stderr_1.sh 
+INFO: TTY=/dev/pts/4
+TRACE: 1: 1(/proc/183263/fd/pipe:[3470331]) 2(/dev/pts/4) 3(/proc/183267/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+INFO: No fatal error occurred
+INFO: The xyz service recovered automatically
+  ERROR: *Fatal* error
+  TRACE: 2a: 1(/proc/183275/fd/pipe:[3470885]) 2(/proc/183277/fd/pipe:[3471372]) 3(/proc/183279/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+  TRACE: 2b: 1(/proc/183284/fd/pipe:[3470905]) 2(/dev/pts/4) 3(/proc/183288/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+TRACE: 2c: 1(/proc/183291/fd/pipe:[3470915]) 2(/dev/pts/4) 3(/dev/pts/4): fds=[0, 1, 19, 2, 20, 22, 3, 4]
+TRACE: 3: 1(/proc/183298/fd/pipe:[3471423]) 2(/dev/pts/4) 3(/proc/183302/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+----
+
+## Redirections 1: Inputs
+
+### Single inputs
+
+* Example 1: Connect the output of the pipe to the standard input
++
+[source,shell]
+----
+bash -c 'time cat <&0' < <(echo "apple"; sleep 1; echo "banana"; sleep 1; echo "cherry")
+----
++
+[source,plaintext]
+----
+$ bash -c 'time cat <&0' < <(echo "apple"; sleep 1; echo "banana"; sleep 1; echo "cherry")
+apple
+banana
+cherry
+
+real    0m2.006s
+user    0m0.004s
+sys     0m0.001s
+----
+
+* Example 2: Connecting the output of a pipe to standard input (alternative)
++
+[source,shell]
+----
+bash -c 'time cat -' < <(echo "apple"; sleep 1; echo "banana"; sleep 1; echo "cherry")
+----
++
+[source,plaintext]
+----
+$ bash -c 'time cat -' < <(echo "apple"; sleep 1; echo "banana"; sleep 1; echo "cherry")
+apple
+banana
+cherry
+
+real    0m2.004s
+user    0m0.003s
+sys     0m0.000s
+----
+
+### Multiple inputs
+
+* Example 1: Apply the `diff` command to the output of two commands
++
+[source,plaintext]
+----
+$ diff <(printf "apple\nbanana\ncherry\n") <(printf "apple\ncherry\n")
+2d1
+< banana
+----
+
+* Example 2: Understand that the first and second arguments specified using the `<()` syntax are passed as file descriptors
++
+[source,shell]
+----
+bash <(echo '#!/usr/bin/env bash'; echo 'echo "BASH_SOURCE: $BASH_SOURCE, \$0: $0, ARGC: $#, ARGS: $@"') <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
+----
++
+[source,plaintext]
+.Results
+----
+BASH_SOURCE: /dev/fd/63, $0: /dev/fd/63, ARGC: 2, ARGS: /dev/fd/62 /dev/fd/61
+----
+
+* Example 3: A demonstration of how the first and second arguments specified using the `<()` syntax are passed as file descriptors and their contents can be displayed.
++
+[source,shell]
+----
+bash show_args.sh <(echo "apple") <(echo "banana peach" | tr ' ' '\n')
+----
++
+[source,shell]
+.show_args.sh
+----
+#!/usr/bin/env bash
+echo "ARGC: $#"
+echo "ARGS: $@"
+
+for STDIN in "$@"; do
+    (set -x; cat $STDIN)
+done
+----
++
+[source,plaintext]
+.Results
+----
+$ bash ./src/stdin/redirects_from_stdin.sh 
+ARGC: 2
+ARGS: /dev/fd/63 /dev/fd/62
++ cat /dev/fd/63
+apple
++ cat /dev/fd/62
+banana
+peach
+----
+
+* Example 4: `loop_from_stdin.sh`
++
+[source,plaintext]
+----
+$ bash src/stdin/loop_from_stdin.sh 
+--- Read lines from stdin ---
+[2024-12-28T08:08:27+09:00 ]: INFO: ARGC=0, ARGS=[]
+[2024-12-28T08:08:27+09:00 ]: INFO: stdin is not coming from the terminal
+[2024-12-28T08:08:27+09:00 ]: INFO: stdin is coming from a pipe
+[2024-12-28T08:08:27+09:00 ]: INFO: /dev/stdin -> /proc/10763/fd/pipe:[240561]
+bash,10751 src/stdin/loop_from_stdin.sh
+  └─bash,10753 /dev/fd/63
+      ├─bash,10755 src/stdin/loop_from_stdin.sh
+      │   └─sleep,10757 1
+      └─pstree,10764 -a -p 10751
+[2024-12-28T08:08:27+09:00 ]: /dev/stdin: 1
+[2024-12-28T08:08:28+09:00 ]: /dev/stdin: 2
+[2024-12-28T08:08:30+09:00 ]: /dev/stdin: 3
+
+--- Read lines from argv[1] ---
+[2024-12-28T08:08:33+09:00 ]: INFO: ARGC=2, ARGS=[/dev/fd/62 /dev/fd/61]
+[2024-12-28T08:08:33+09:00 ]: INFO: stdin is not coming from the terminal
+[2024-12-28T08:08:33+09:00 ]: INFO: stdin is not coming from a pipe
+[2024-12-28T08:08:33+09:00 ]: INFO:/dev/stdin -> /dev/null
+[2024-12-28T08:08:33+09:00 ]: /dev/fd/62 -> /proc/10852/fd/pipe:[241564]
+[2024-12-28T08:08:33+09:00 ]: /dev/fd/61 -> /proc/10854/fd/pipe:[241565]
+bash,10751 src/stdin/loop_from_stdin.sh
+  ├─bash,10838 src/stdin/loop_from_stdin.sh
+  │   └─sleep,10842 1
+  ├─bash,10839 src/stdin/loop_from_stdin.sh
+  │   └─sleep,10843 1
+  └─bash,10840 /dev/fd/63 /dev/fd/62 /dev/fd/61
+      └─pstree,10855 -a -p 10751
+[2024-12-28T08:08:33+09:00 ]: $1=/dev/fd/62: a
+[2024-12-28T08:08:34+09:00 ]: $1=/dev/fd/62: b
+[2024-12-28T08:08:34+09:00 ]: $2=/dev/fd/61: A
+[2024-12-28T08:08:35+09:00 ]: $2=/dev/fd/61: B
+[2024-12-28T08:08:35+09:00 ]: $1=/dev/fd/62: c
+[2024-12-28T08:08:36+09:00 ]: $2=/dev/fd/61: C
+----
+
+* Example 5: `read_from_tty.sh`
++
+[source,plaintext]
+.Result 1: Input from terminal
+----
+$ bash read_from_tty.sh
+Enter the some word: aaaa
+Output: aaaa
+----
++
+[source,plaintext]
+.Result 2: Input from PIPE
+----
+$ bash src/stdin/read_from_tty.sh < <(echo -n "Hello"; sleep 1; echo " world!")
+Output: Hello world!
+----
+
