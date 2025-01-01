@@ -75,7 +75,7 @@ Change dark blue color in ls output in linux.
 
 [source,shell]
 ----
-eval `dircolors | sed -e 's/di=01;34/di=00;44/'`
+eval $(dircolors | sed -e 's/di=01;34/di=00;44/')
 ----
 
 image::terminal_emulators-ls-colors.png[]
@@ -98,7 +98,7 @@ export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=35:ln=32:bn=32:se=36'
 [source,shell]
 .password_read_1time.sh
 ----
-include::../src/password_read_1time.sh[]
+include::../src/cli/password_read_1time.sh[]
 ----
 +
 [source,console]
@@ -114,7 +114,7 @@ PASS: aaa
 [source,shell]
 .password_read_repeat.sh
 ----
-include::../src/password_read_repeat.sh[]
+include::../src/cli/password_read_repeat.sh[]
 ----
 +
 [source,console]
@@ -137,7 +137,7 @@ Re-type new password:
 [source,shell]
 .pipe_test.sh
 ----
-include::../src/pipe_test.sh[]
+include::../src/redirections/pipe_test.sh[]
 ----
 +
 [source,console]
@@ -146,6 +146,11 @@ include::../src/pipe_test.sh[]
 $ ./pipe_test.sh
 Pipe not open
 $ printf "%s\n%s\n%s\n" "foo" "bar" "baz" | ./pipe_test.sh
+Pipe available
+> foo
+> bar
+> baz
+$ ./pipe_test.sh < <(printf "%s\n%s\n%s\n" "foo" "bar" "baz")
 Pipe available
 > foo
 > bar
