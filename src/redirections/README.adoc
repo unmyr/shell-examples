@@ -219,17 +219,20 @@ error2
 * `piping_stderr_1.sh`
 +
 [source,plaintext]
+.Result 1: Filter only error output
 ----
-$ ./piping_stderr_1.sh 
-INFO: TTY=/dev/pts/4
-TRACE: 1: 1(/proc/183263/fd/pipe:[3470331]) 2(/dev/pts/4) 3(/proc/183267/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+$ ./piping_stderr_1.sh
 INFO: No fatal error occurred
 INFO: The xyz service recovered automatically
-  ERROR: *Fatal* error
-  TRACE: 2a: 1(/proc/183275/fd/pipe:[3470885]) 2(/proc/183277/fd/pipe:[3471372]) 3(/proc/183279/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
-  TRACE: 2b: 1(/proc/183284/fd/pipe:[3470905]) 2(/dev/pts/4) 3(/proc/183288/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
-TRACE: 2c: 1(/proc/183291/fd/pipe:[3470915]) 2(/dev/pts/4) 3(/dev/pts/4): fds=[0, 1, 19, 2, 20, 22, 3, 4]
-TRACE: 3: 1(/proc/183298/fd/pipe:[3471423]) 2(/dev/pts/4) 3(/proc/183302/fd/3): fds=[0, 1, 19, 2, 20, 22, 3]
+  ERROR: *Fatal* error occurred
+----
++
+[source,plaintext]
+.Result 2: Filter output on both stdout and stderr
+----
+$ ./piping_stderr_2.sh
+  ERROR: *Fatal* error occurred
+INFO: No #fatal# error occurred
 ----
 
 ## Redirections 1: Inputs
