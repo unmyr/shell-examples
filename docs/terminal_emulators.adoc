@@ -139,22 +139,46 @@ Re-type new password:
 ----
 include::../src/redirections/pipe_test.sh[]
 ----
+
+** Example outputs
+
+*** No inputs
 +
 [source,console]
 .Example outputs
 ----
 $ ./pipe_test.sh
-Pipe not open
+INFO: FD 0(stdin) is opened
+INFO: File descriptor FD is opened on a terminal : FD=0 PATH='/dev/pts/7'
++ lsof -p 41809 -a -d 0
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+bash    41809 guest    0u   CHR  136,7      0t0   10 /dev/pts/7
+----
+
+*** With inputs from a pipe
++
+[source,plaintext]
+----
 $ printf "%s\n%s\n%s\n" "foo" "bar" "baz" | ./pipe_test.sh
-Pipe available
-> foo
-> bar
-> baz
+INFO: FD 0(stdin) is opened
+INFO: File descriptor FD is open on a pipe : FD=0 PATH='/proc/42028/fd/pipe:[835390]'
++ cat -
+foo
+bar
+baz
++ lsof -p 42025 -a -d 0
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+bash    42025 guest    0r  FIFO   0,12      0t0 835390 pipe
 $ ./pipe_test.sh < <(printf "%s\n%s\n%s\n" "foo" "bar" "baz")
-Pipe available
-> foo
-> bar
-> baz
+INFO: FD 0(stdin) is opened
+INFO: File descriptor FD is open on a pipe : FD=0 PATH='/proc/42296/fd/pipe:[839804]'
++ cat -
+foo
+bar
+baz
++ lsof -p 42292 -a -d 0
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+bash    42292 guest    0r  FIFO   0,12      0t0 839804 pipe
 ----
 
 .References
